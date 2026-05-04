@@ -1,0 +1,274 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const lastReviewed = '5.5.2026';
+const published = '5.5.2026';
+---
+
+<BaseLayout
+  title="Saavutettavuusseloste | RAAKAA Podcast"
+  description="RAAKAA Podcastin saavutettavuusseloste. Tavoitteena WCAG 2.1 AA -taso ja jatkuva parantaminen. Anna palautetta saavutettavuudesta yhteydenottolomakkeen kautta."
+>
+  <article class="page max legal">
+    <header class="legal-head">
+      <p class="eyebrow">Saavutettavuus</p>
+      <h1>Saavutettavuus<span>seloste</span></h1>
+      <p class="lead">
+        Tämä seloste koskee verkkosivustoa <strong>raakaa.fi</strong> ja sen saavutettavuuden tilaa.
+        RAAKAA Podcast on yhden hengen toimintaa — pyrin pitämään sivuston mahdollisimman avoimena
+        kaikille käyttäjille apuvälineiden kanssa tai ilman.
+      </p>
+    </header>
+
+    <section class="legal-section">
+      <h2>Saavutettavuusvaatimusten noudattaminen</h2>
+      <p>
+        Verkkosivuston tavoitetasona on Web Content Accessibility Guidelines (WCAG) 2.1 -ohjeistuksen
+        AA-taso. Sivusto on suunniteltu mobiili edellä, ja sitä on testattu sekä näppäimistönavigaatiolla
+        että ruudunlukijoilla.
+      </p>
+
+      <h3>Mitä sivustolla on tehty saavutettavuuden eteen</h3>
+      <ul class="bullet-list">
+        <li>Sivun kieli on määritelty (<code>lang="fi"</code>) ja otsikkohierarkia (h1, h2, h3) noudattaa loogista järjestystä.</li>
+        <li>Skip-linkki "Siirry pääsisältöön" on tarjolla näppäimistökäyttäjille heti sivun alussa.</li>
+        <li>Kaikki interaktiiviset elementit (linkit, painikkeet, lomakkeet) ovat näppäimistöllä saavutettavia ja niillä on näkyvä keltainen fokus-kehä.</li>
+        <li>Lomakkeissa kaikilla kentillä on selkeät otsikot, ja pakolliset kentät on merkitty tähdellä sekä selitetty tekstillä.</li>
+        <li>Kuvilla on tekstivastineet (<code>alt</code>-attribuutit) lukuun ottamatta puhtaasti koristeellisia kuvia.</li>
+        <li>Värikontrasti tekstin ja taustan välillä täyttää AA-tason vaatimukset (yli 13:1 keltainen aksentti mustalla, yli 18:1 päätekstit).</li>
+        <li>Kuvankäsittely (harmaasävystä väriin -siirtymä) ja muut animaatiot kunnioittavat selaimen <code>prefers-reduced-motion</code>-asetusta.</li>
+        <li>Audiosoittimen tila kerrotaan ruudunlukijoille (toista/pysäytä) ja jakson otsikko luetaan käynnistettäessä.</li>
+        <li>Aktiivinen sivu navigaatiossa merkitään <code>aria-current="page"</code>-attribuutilla.</li>
+      </ul>
+
+      <h3>Sisältö, joka ei ole täysin saavutettavaa</h3>
+      <p>
+        Sivuston jaksokorteissa upotetaan RSS.com-soitin, joka on kolmannen osapuolen palvelu enkä voi
+        taata sen sisäisen käyttöliittymän täydellistä WCAG-yhteensopivuutta. Vaihtoehtoisena toimivana
+        tapana voit aina kuunnella jaksot omilla suosikkialustoillasi — Spotify, Apple Podcasts ja YouTube
+        ovat itsessään hyvin saavutettavia palveluita.
+      </p>
+      <p>
+        Jaksojen tekstivastineet (litteroinnit) tarjotaan PDF-muodossa, kun ne ovat saatavilla.
+        PDF-tiedostojen sisäinen rakenne ei välttämättä ole täysin ruudunlukija-yhteensopiva — pyrin
+        siirtymään HTML-muotoisiin litterointeihin tulevaisuudessa.
+      </p>
+      <p>
+        Joissakin jaksokuvauksissa, jotka tulevat suoraan RSS.com-syötteestä, voi olla muotoiluja, jotka
+        eivät ole optimaalisia ruudunlukijoille. Pyrin käymään niitä läpi yksitellen.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>Anna palautetta saavutettavuudesta</h2>
+      <p>
+        Jos huomaat sivulla saavutettavuusongelman tai et saa tarvitsemaasi tietoa apuvälineelläsi,
+        otathan yhteyttä — korjaan ongelman mahdollisimman nopeasti.
+      </p>
+      <p>
+        <a class="btn" href="/#yhteys">Lähetä saavutettavuuspalaute</a>
+      </p>
+      <p class="muted">
+        Vastaan yhteydenottoihin pääsääntöisesti 14 päivän sisällä.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>Valvontaviranomainen</h2>
+      <p>
+        Jos huomaat sivustolla saavutettavuusongelmia, anna ensin palautetta sivuston ylläpitäjälle
+        eli minulle. Vastaaminen voi viedä jopa 14 päivää. Jos et ole tyytyväinen vastaukseen tai
+        et saa vastausta lainkaan kahden viikon aikana, voit antaa palautetta valvovalle viranomaiselle:
+      </p>
+      <address class="contact-block">
+        <strong>Etelä-Suomen aluehallintovirasto</strong><br />
+        Saavutettavuuden valvonnan yksikkö<br />
+        <a href="https://www.saavutettavuusvaatimukset.fi" target="_blank" rel="noreferrer noopener">
+          saavutettavuusvaatimukset.fi
+        </a><br />
+        <a href="mailto:saavutettavuus@avi.fi">saavutettavuus@avi.fi</a>
+      </address>
+    </section>
+
+    <section class="legal-section">
+      <h2>Selosteen tiedot</h2>
+      <dl class="meta-list">
+        <dt>Tämä seloste on julkaistu</dt>
+        <dd>{published}</dd>
+        <dt>Viimeksi päivitetty</dt>
+        <dd>{lastReviewed}</dd>
+        <dt>Selosteen on laatinut</dt>
+        <dd>Markus Suominen, RAAKAA Podcast</dd>
+        <dt>Itsearvioinnin menetelmät</dt>
+        <dd>
+          Manuaalinen testaus: näppäimistönavigaatio, VoiceOver (macOS, iOS), Chrome Lighthouse -arvio,
+          axe DevTools -työkalu, värikontrastin laskenta WebAIM Contrast Checkerilla.
+        </dd>
+      </dl>
+    </section>
+
+    <p class="legal-back">
+      <a href="/">← Takaisin etusivulle</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 7rem;
+    padding-bottom: 4rem;
+  }
+
+  .legal {
+    max-width: 760px;
+  }
+
+  .legal-head {
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin: 0 0 0.8rem;
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+    line-height: 1.1;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .lead {
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  .legal-section {
+    margin: 2.5rem 0;
+    padding: clamp(1.2rem, 3vw, 1.8rem);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .legal-section h2 {
+    font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .legal-section h3 {
+    font-size: 1.05rem;
+    margin: 1.6rem 0 0.6rem;
+    color: var(--text);
+  }
+
+  .legal-section p {
+    color: var(--muted);
+    line-height: 1.7;
+    margin: 0.65rem 0;
+  }
+
+  .legal-section a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .legal-section a.btn {
+    text-decoration: none;
+  }
+
+  .bullet-list {
+    color: var(--muted);
+    line-height: 1.7;
+    padding-left: 1.2rem;
+    margin: 0.75rem 0;
+  }
+
+  .bullet-list li {
+    margin: 0.5rem 0;
+  }
+
+  .bullet-list code,
+  p code {
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  .meta-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1.4rem;
+    margin: 1rem 0 0;
+  }
+
+  .meta-list dt {
+    color: var(--muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    align-self: start;
+    padding-top: 0.15rem;
+  }
+
+  .meta-list dd {
+    margin: 0;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .contact-block {
+    color: var(--muted);
+    line-height: 1.7;
+    font-style: normal;
+    padding: 0.85rem 1rem;
+    border-left: 3px solid var(--accent);
+    background: rgba(255, 255, 255, 0.03);
+    margin: 1rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .legal-back {
+    margin-top: 3rem;
+  }
+
+  .legal-back a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  .legal-back a:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .meta-list {
+      grid-template-columns: 1fr;
+      gap: 0.2rem 0;
+    }
+
+    .meta-list dd {
+      margin: 0 0 1rem;
+    }
+  }
+</style>

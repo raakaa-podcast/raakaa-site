@@ -12,25 +12,32 @@ const cls = size === 'small' ? 'btn small' : 'btn';
 ---
 
 <div class="episode-buttons">
-  <a class={`${cls} alt`} href={`/jaksot/${slug}`}>Avaa</a>
+  <a
+    class={`${cls} alt`}
+    href={`/jaksot/${slug}`}
+    aria-label={`Avaa jakso: ${title}`}
+  >
+    <span aria-hidden="true">Avaa</span>
+  </a>
   <button
     class={cls}
     type="button"
     data-play-episode
     data-episode-title={title}
     data-episode-audio={audioUrl}
+    aria-label={`Toista jakso: ${title}`}
   >
-    Toista
+    <span aria-hidden="true">Toista</span>
   </button>
   {pdfUrl && (
     <a
       class={`${cls} alt`}
       href={pdfUrl}
       target="_blank"
-      rel="noreferrer"
-      aria-label={`Avaa litterointi PDF-muodossa: ${title}`}
+      rel="noreferrer noopener"
+      aria-label={`Avaa litterointi PDF-muodossa uudessa välilehdessä: ${title}`}
     >
-      Litterointi
+      <span aria-hidden="true">Litterointi</span>
     </a>
   )}
 </div>

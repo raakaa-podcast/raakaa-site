@@ -182,7 +182,7 @@ const orgSchema = {
 
   <section id="markus" class="markus" aria-labelledby="markus-title">
     <div class="max markus-grid">
-      <a class="img-wrap" href="/markus" aria-label="Lue Markuksen koko tarina" data-reveal>
+      <a class="img-wrap" href="/markus" aria-label="Lue koko tarinani" data-reveal>
         <img
           src="/images/markus-suominen.jpg"
           alt="Markus Suominen, RAAKAA Podcastin juontaja"
@@ -193,18 +193,18 @@ const orgSchema = {
         />
       </a>
       <div>
-        <h4>Juontaja</h4>
+        <p class="kicker">Juontaja</p>
         <h3 id="markus-title">Markus <span>Suominen</span></h3>
         <p>
-          Markus on elämän koulima joka paikan höylä, joka ymmärtää niin koneita, koodia kuin ihmismieltä. Maailmaa
+          Olen elämän koulima joka paikan höylä, joka ymmärtää niin koneita, koodia kuin ihmismieltä. Maailmaa
           nähnyt seikkailija, joka osaa ottaa tilanteen haltuun paikasta ja seurasta riippumatta.
         </p>
         <p>
-          Markus on kulkenut polun, joka on vienyt hänet yli 40 maahan, pinnan alle PADI Rescue Diverina, metsään
-          enduropyörällä ja korkeuksiin laskuvarjolla. Tämä elämänkokemus heijastuu kaikkeen tekemiseen.
+          Olen kulkenut polun, joka on vienyt minut yli 40 maahan, pinnan alle PADI Rescue Diverina, metsään
+          enduropyörällä ja korkeuksiin laskuvarjolla. Tämä elämänkokemus heijastuu kaikkeen tekemiseeni.
         </p>
         <p>
-          <a class="btn alt" href="/markus">Lue koko tarina</a>
+          <a class="btn alt" href="/markus">Lue koko tarinani</a>
         </p>
       </div>
     </div>
@@ -248,7 +248,7 @@ const orgSchema = {
         <p class="hp-field" aria-hidden="true">
           <label>Älä täytä tätä kenttää: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
         </p>
-        <label class="visually-hidden" for="tilaus-email">Sähköposti</label>
+        <label class="visually-hidden" for="tilaus-email">Sähköpostiosoite (pakollinen)</label>
         <input
           id="tilaus-email"
           type="email"
@@ -256,10 +256,11 @@ const orgSchema = {
           required
           autocomplete="email"
           placeholder="oma@osoite.fi"
+          aria-required="true"
         />
         <label class="consent">
-          <input type="checkbox" name="suostumus" value="kylla" required />
-          <span>Hyväksyn, että sähköpostiosoitettani käytetään ainoastaan jaksomuistutuksiin.</span>
+          <input type="checkbox" name="suostumus" value="kylla" required aria-required="true" />
+          <span>Hyväksyn, että sähköpostiosoitettani käytetään ainoastaan jaksomuistutuksiin. <span class="req" aria-hidden="true">*</span></span>
         </label>
         <button class="btn" type="submit">Tilaa</button>
       </form>
@@ -285,15 +286,15 @@ const orgSchema = {
         <label>Älä täytä tätä kenttää: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
       </p>
       <label>
-        Nimi
+        <span>Nimi <span class="req" aria-hidden="true">*</span></span>
         <input type="text" name="nimi" required autocomplete="name" />
       </label>
       <label>
-        Sähköposti
+        <span>Sähköposti <span class="req" aria-hidden="true">*</span></span>
         <input type="email" name="sahkoposti" required autocomplete="email" />
       </label>
       <label class="full">
-        Aihe
+        <span>Aihe</span>
         <select name="aihe">
           <option value="vierasvinkki">Vierasehdotus</option>
           <option value="aihe-ehdotus">Aihe-ehdotus</option>
@@ -302,9 +303,10 @@ const orgSchema = {
         </select>
       </label>
       <label class="full">
-        Viesti
+        <span>Viesti <span class="req" aria-hidden="true">*</span></span>
         <textarea name="viesti" rows="5" required></textarea>
       </label>
+      <p class="form-note muted"><span aria-hidden="true">*</span> Pakollinen kenttä</p>
       <button class="btn full-btn" type="submit">Lähetä viesti</button>
     </form>
   </section>
@@ -581,11 +583,12 @@ const orgSchema = {
     }
   }
 
-  .markus h4 {
+  .markus .kicker {
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.2em;
     font-size: 0.72rem;
+    font-weight: 700;
     margin: 0 0 0.6rem;
   }
 
@@ -757,6 +760,18 @@ const orgSchema = {
 
   .full {
     grid-column: 1 / -1;
+  }
+
+  .req {
+    color: var(--accent);
+    font-weight: 700;
+    margin-left: 0.15em;
+  }
+
+  .form-note {
+    grid-column: 1 / -1;
+    font-size: 0.78rem;
+    margin: 0;
   }
 
   .full-btn {

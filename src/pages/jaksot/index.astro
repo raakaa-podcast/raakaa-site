@@ -47,11 +47,21 @@ const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
 
           {allTopics.length > 0 && (
             <div class="topic-filter" role="group" aria-label="Suodata aiheen mukaan">
-              <button class="topic-chip is-active" type="button" data-topic="">
+              <button
+                class="topic-chip is-active"
+                type="button"
+                data-topic=""
+                aria-pressed="true"
+              >
                 Kaikki
               </button>
               {allTopics.map((topic) => (
-                <button class="topic-chip" type="button" data-topic={topic}>
+                <button
+                  class="topic-chip"
+                  type="button"
+                  data-topic={topic}
+                  aria-pressed="false"
+                >
                   #{topic}
                 </button>
               ))}
@@ -127,8 +137,12 @@ const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
 
       chips.forEach(function (chip) {
         chip.addEventListener('click', function () {
-          chips.forEach(function (c) { c.classList.remove('is-active'); });
+          chips.forEach(function (c) {
+            c.classList.remove('is-active');
+            c.setAttribute('aria-pressed', 'false');
+          });
           chip.classList.add('is-active');
+          chip.setAttribute('aria-pressed', 'true');
           state.topic = chip.getAttribute('data-topic') || '';
           applyFilters();
         });

@@ -82,7 +82,7 @@ const structuredDataItems = Array.isArray(structuredData)
 
     <SiteHeader />
 
-    <main id="main">
+    <main id="main" tabindex="-1">
       <slot />
     </main>
 
@@ -137,9 +137,25 @@ const structuredDataItems = Array.isArray(structuredData)
     height: auto;
   }
 
+  /* Saavutettava näppäinfokus */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .btn:focus-visible,
+  button:focus-visible {
+    outline-offset: 3px;
+  }
+
   main {
     min-height: 60vh;
     padding-bottom: 9rem;
+  }
+
+  main:focus {
+    outline: none;
   }
 
   .container,
@@ -282,6 +298,12 @@ const structuredDataItems = Array.isArray(structuredData)
   input[type='range'] {
     accent-color: var(--accent);
     width: 100%;
+  }
+
+  input[type='range']:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+    border-radius: 4px;
   }
 
   @media (prefers-reduced-motion: reduce) {

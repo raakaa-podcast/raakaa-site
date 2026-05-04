@@ -9,6 +9,7 @@ import SocialIcons from './SocialIcons.astro';
         <span class="brand-word">Raakaa<span class="dot">.</span></span>
       </a>
       <p class="tagline">Sitoutumaton, rehellinen ja kiehtova suomalainen keskusteluohjelma.</p>
+      <p class="credit">Sivut luonut Markus Suominen</p>
     </div>
 
     <nav class="footer-nav" aria-label="Sivuston linkit">
@@ -17,11 +18,11 @@ import SocialIcons from './SocialIcons.astro';
       <a href="/markus">Markus</a>
       <a href="/vieraat">Vieraat</a>
       <a href="/#yhteys">Yhteys</a>
-      <a href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer">RSS-syöte</a>
+      <a href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer noopener">RSS-syöte</a>
     </nav>
 
     <div class="footer-social">
-      <p class="social-title">Seuraa meitä</p>
+      <p class="social-title">Seuraa minua</p>
       <ul>
         <li><a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="Instagram"><SocialIcons name="instagram" size={20} /><span>Instagram</span></a></li>
         <li><a href="https://www.youtube.com/@RaakaaPodcast" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" size={20} /><span>YouTube</span></a></li>
@@ -33,7 +34,13 @@ import SocialIcons from './SocialIcons.astro';
     </div>
   </div>
 
-  <p class="copy">© 2026 RAAKAA Podcast – kaikki oikeudet pidätetään</p>
+  <div class="footer-bottom">
+    <nav class="footer-legal" aria-label="Lakitekstit">
+      <a href="/saavutettavuus">Saavutettavuus</a>
+      <a href="/tietosuoja">Tietosuoja</a>
+    </nav>
+    <p class="copy">© 2026 RAAKAA Podcast – kaikki oikeudet pidätetään</p>
+  </div>
 </footer>
 
 <style>
@@ -75,6 +82,13 @@ import SocialIcons from './SocialIcons.astro';
     margin: 0;
     line-height: 1.55;
     max-width: 36ch;
+  }
+
+  .credit {
+    color: var(--muted);
+    margin: 0.85rem 0 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
   }
 
   .footer-nav {
@@ -121,18 +135,55 @@ import SocialIcons from './SocialIcons.astro';
     color: var(--accent);
   }
 
+  .footer-bottom {
+    width: min(1120px, 92vw);
+    margin: 2.5rem auto 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .footer-legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+  }
+
+  .footer-legal a {
+    transition: color 150ms ease;
+  }
+
+  .footer-legal a:hover,
+  .footer-legal a:focus-visible {
+    color: var(--accent);
+  }
+
   .copy {
-    text-align: center;
     color: #6e6e6e;
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    margin: 2.5rem 0 0;
+    margin: 0;
   }
 
   @media (max-width: 800px) {
     .footer-inner {
       grid-template-columns: 1fr;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
     }
   }
 </style>

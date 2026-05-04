@@ -3,7 +3,7 @@ import SocialIcons from './SocialIcons.astro';
 const path = Astro.url.pathname.replace(/\/$/, '');
 const isHome = path === '' || path === '/';
 
-type LinkDef = { href: string; label: string };
+type LinkDef = { href: string; label: string; pathMatch?: string };
 const navLinks: LinkDef[] = isHome
   ? [
       { href: '#jaksot', label: 'Jaksot' },
@@ -13,13 +13,19 @@ const navLinks: LinkDef[] = isHome
       { href: '#yhteys', label: 'Yhteys' },
     ]
   : [
-      { href: '/', label: 'Etusivu' },
-      { href: '/jaksot', label: 'Jaksot' },
-      { href: '/markus', label: 'Markus' },
-      { href: '/vieraat', label: 'Vieraat' },
+      { href: '/', label: 'Etusivu', pathMatch: '/' },
+      { href: '/jaksot', label: 'Jaksot', pathMatch: '/jaksot' },
+      { href: '/markus', label: 'Markus', pathMatch: '/markus' },
+      { href: '/vieraat', label: 'Vieraat', pathMatch: '/vieraat' },
       { href: '/#tilaa', label: 'Tilaa' },
       { href: '/#yhteys', label: 'Yhteys' },
     ];
+
+const isCurrent = (link: LinkDef): boolean => {
+  if (!link.pathMatch) return false;
+  if (link.pathMatch === '/') return path === '' || path === '/';
+  return path === link.pathMatch || path.startsWith(`${link.pathMatch}/`);
+};
 ---
 
 <header class="site-header glass" role="banner">
@@ -29,7 +35,11 @@ const navLinks: LinkDef[] = isHome
     </a>
 
     <nav class="primary-nav" aria-label="Päänavigaatio">
-      {navLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+      {navLinks.map((link) => (
+        <a href={link.href} aria-current={isCurrent(link) ? 'page' : undefined}>
+          {link.label}
+        </a>
+      ))}
     </nav>
 
     <div class="header-extras">
@@ -65,7 +75,15 @@ const navLinks: LinkDef[] = isHome
   hidden
 >
   <nav class="mobile-nav" aria-label="Mobiilinavigaatio">
-    {navLinks.map((link) => <a href={link.href} data-mobile-link>{link.label}</a>)}
+    {navLinks.map((link) => (
+      <a
+        href={link.href}
+        data-mobile-link
+        aria-current={isCurrent(link) ? 'page' : undefined}
+      >
+        {link.label}
+      </a>
+    ))}
   </nav>
 
   <div class="mobile-socials">
@@ -173,7 +191,16 @@ const navLinks: LinkDef[] = isHome
     transition: color 150ms ease;
   }
 
-  .primary-nav a:hover {
+  .primary-nav a:hover,
+  .primary-nav a:focus-visible {
+    color: var(--accent);
+  }
+
+  .primary-nav a[aria-current='page'] {
+    color: var(--accent);
+  }
+
+  .mobile-nav a[aria-current='page'] {
     color: var(--accent);
   }
 

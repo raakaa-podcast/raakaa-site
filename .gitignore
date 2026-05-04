@@ -38,8 +38,9 @@ Desktop.ini
 # Local Netlify folder
 .netlify
 
-# Pidetään hallintaohjeet vain lokaalisti
+# Pidetään hallintaohjeet ja brändipaketti vain lokaalisti
 README.md
+brand/
 
 # SSH keys / secrets — älä koskaan commitoi näitä
 id_rsa
