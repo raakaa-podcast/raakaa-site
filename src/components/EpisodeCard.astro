@@ -1,97 +1,204 @@
 ---
+import EpisodeButtons from './EpisodeButtons.astro';
 import { formatFinnishDate, type Episode } from '../lib/rss';
+import { formatDuration, getEpisodeMeta, resolveGuestNames } from '../lib/episodeMeta';
 
 type Props = {
   episode: Episode;
+  pdfUrl?: string | null;
+  headingLevel?: 'h2' | 'h3';
 };
 
-const { episode } = Astro.props;
+const { episode, pdfUrl = null, headingLevel = 'h3' } = Astro.props;
+
+const meta = getEpisodeMeta(episode);
+const duration = formatDuration(episode.duration);
+const guests = resolveGuestNames(meta.guests ?? []);
+const topics = meta.topics ?? [];
+
+const stripHtml = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const description = meta.summary || stripHtml(episode.description);
+const Heading = headingLevel;
+
+const searchString = [
+  episode.title,
+  description,
+  guests.map((g) => g.name).join(' '),
+  topics.join(' '),
+].join(' ').toLowerCase();
 ---
 
-<article class="episode-card glass">
-  {
-    episode.imageUrl && (
-      <div class="cover">
-        <img src={episode.imageUrl} alt={episode.title} loading="lazy" />
-      </div>
-    )
-  }
-  <p class="meta">{formatFinnishDate(episode.publishedAt)}</p>
-  <h3>{episode.title}</h3>
-  <p class="muted" set:html={episode.description}></p>
-  <div class="actions">
-    <a class="btn" href={`/jaksot/${episode.slug}`}>Avaa jakso</a>
-    <button
-      class="btn secondary"
-      type="button"
-      data-play-episode
-      data-episode-title={episode.title}
-      data-episode-audio={episode.audioUrl}
-    >
-      Kuuntele
-    </button>
+<article
+  class="ep glass"
+  data-episode-card
+  data-search={searchString}
+  data-topics={topics.join('|')}
+  data-guests={guests.map((g) => g.slug).join('|')}
+>
+  <a class="cover-wrap" href={`/jaksot/${episode.slug}`} aria-label={`Avaa jakso: ${episode.title}`}>
+    {episode.imageUrl && (
+      <img
+        src={episode.imageUrl}
+        alt={episode.title}
+        loading="lazy"
+        decoding="async"
+        width="600"
+        height="600"
+      />
+    )}
+  </a>
+
+  <div class="meta-row">
+    <span class="date">{formatFinnishDate(episode.publishedAt)}</span>
+    {duration && <span class="duration" aria-label={`Kesto ${duration}`}>{duration}</span>}
   </div>
+
+  <Heading class="ep-title"><a href={`/jaksot/${episode.slug}`}>{episode.title}</a></Heading>
+
+  {guests.length > 0 && (
+    <p class="guests">
+      <span class="label">Vieras{guests.length === 1 ? '' : 'sat'}:</span>
+      {guests.map((g, i) => (
+        <span>
+          <a href={`/vieraat/${g.slug}`}>{g.name}</a>{i < guests.length - 1 ? ', ' : ''}
+        </span>
+      ))}
+    </p>
+  )}
+
+  <p class="desc">{description.slice(0, 160)}{description.length > 160 ? '…' : ''}</p>
+
+  {topics.length > 0 && (
+    <ul class="topics" aria-label="Aiheet">
+      {topics.map((t) => <li class="topic">#{t}</li>)}
+    </ul>
+  )}
+
+  <EpisodeButtons
+    slug={episode.slug}
+    title={episode.title}
+    audioUrl={episode.audioUrl}
+    pdfUrl={pdfUrl}
+  />
 </article>
 
 <style>
-  .episode-card {
-    padding: 1.1rem;
-    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  .ep {
+    padding: 1rem;
+    transition: border-color 180ms ease, transform 180ms ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
   }
 
-  .episode-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(255, 212, 0, 0.34);
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.38);
+  .ep:hover {
+    border-color: rgba(255, 212, 0, 0.4);
   }
 
-  .cover {
-    overflow: hidden;
-    border-radius: 12px;
-    margin-bottom: 0.8rem;
-    border: 1px solid var(--border);
-    background: #0b0b0b;
-  }
-
-  img {
-    width: 100%;
+  .cover-wrap {
     aspect-ratio: 1 / 1;
-    object-fit: cover;
+    overflow: hidden;
+    margin-bottom: 0.4rem;
     display: block;
-    transition: transform 220ms ease, filter 220ms ease;
-    filter: grayscale(0.15);
+    border-radius: 12px;
   }
 
-  .episode-card:hover img {
-    transform: scale(1.04);
+  .cover-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1);
+    transition: filter 280ms ease, transform 320ms ease;
+    display: block;
+  }
+
+  .ep:hover .cover-wrap img,
+  .ep:focus-within .cover-wrap img {
     filter: grayscale(0);
+    transform: scale(1.04);
   }
 
-  .meta {
-    margin: 0 0 0.5rem;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
-
-  h3 {
-    margin: 0 0 0.6rem;
-    font-size: 1.2rem;
-  }
-
-  p {
+  .meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    font-weight: 700;
     margin: 0;
   }
 
-  .actions {
-    margin-top: 0.9rem;
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
+  .date {
+    color: var(--accent);
   }
 
-  .secondary {
-    background: #222;
-    color: #fff;
+  .duration {
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    letter-spacing: 0.08em;
+  }
+
+  .ep-title {
+    margin: 0;
+    font-size: 1.2rem;
+    line-height: 1.3;
+  }
+
+  .ep-title a {
+    transition: color 150ms ease;
+  }
+
+  .ep-title a:hover {
+    color: var(--accent);
+  }
+
+  .guests {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .guests .label {
+    color: var(--text);
+    font-weight: 600;
+    margin-right: 0.35rem;
+  }
+
+  .guests a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .desc {
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  .topics {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .topic {
+    font-size: 0.72rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
   }
 </style>

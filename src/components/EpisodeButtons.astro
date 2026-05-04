@@ -1,0 +1,44 @@
+---
+type Props = {
+  slug: string;
+  title: string;
+  audioUrl: string;
+  pdfUrl?: string | null;
+  size?: 'small' | 'default';
+};
+
+const { slug, title, audioUrl, pdfUrl, size = 'small' } = Astro.props;
+const cls = size === 'small' ? 'btn small' : 'btn';
+---
+
+<div class="episode-buttons">
+  <a class={`${cls} alt`} href={`/jaksot/${slug}`}>Avaa</a>
+  <button
+    class={cls}
+    type="button"
+    data-play-episode
+    data-episode-title={title}
+    data-episode-audio={audioUrl}
+  >
+    Toista
+  </button>
+  {pdfUrl && (
+    <a
+      class={`${cls} alt`}
+      href={pdfUrl}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Avaa litterointi PDF-muodossa: ${title}`}
+    >
+      Litterointi
+    </a>
+  )}
+</div>
+
+<style>
+  .episode-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+</style>

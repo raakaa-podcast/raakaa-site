@@ -3,18 +3,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout
-  title="Kiitos viestistä | RAAKAA Podcast"
-  description="Kiitos yhteydenotosta. Viestisi on vastaanotettu."
+  title="Tilaus vahvistettu | RAAKAA Podcast"
+  description="Kiitos tilauksesta. Saat sähköpostiin viestin aina uuden jakson ilmestyessä."
   noindex={true}
 >
   <div class="page max">
     <section class="thanks glass">
       <p class="eyebrow">Onnistui</p>
-      <h1>Kiitos <span>viestistäsi</span>!</h1>
-      <p class="muted">Viestisi on vastaanotettu. Palaamme asiaan mahdollisimman pian.</p>
+      <h1>Kiitos <span>tilauksesta</span>!</h1>
+      <p class="muted">
+        Saat sähköpostiisi lyhyen muistutuksen aina kun uusi jakso ilmestyy.
+        Voit peruuttaa tilauksen milloin tahansa viestin lopussa olevasta linkistä.
+      </p>
       <div class="actions">
-        <a class="btn" href="/">Takaisin etusivulle</a>
-        <a class="btn alt" href="/jaksot">Selaa jaksoja</a>
+        <a class="btn" href="/jaksot">Selaa jaksoja</a>
+        <a class="btn alt" href="/">Etusivulle</a>
       </div>
     </section>
   </div>

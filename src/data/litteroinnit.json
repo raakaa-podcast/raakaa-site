@@ -1,0 +1,16 @@
+[
+  {
+    "title": "Esimerkki PDF-litterointi",
+    "episodeSlug": "esimerkki-jakso",
+    "publishDate": "2026-05-04",
+    "excerpt": "Poista tai muokkaa tämä rivi. Lisää uusia objekteja samaan listaan.",
+    "pdfUrl": "/uploads/esimerkki-litterointi.pdf"
+  },
+  {
+    "title": "Testijakso1",
+    "episodeSlug": "test",
+    "publishDate": "2026-05-04",
+    "excerpt": "Poista tai muokkaa tämä rivi. Lisää uusia objekteja samaan listaan.",
+    "pdfUrl": "/uploads/PDF_TestPage.pdf"
+  }
+]

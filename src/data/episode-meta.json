@@ -1,0 +1,9 @@
+[
+  {
+    "episodeSlug": "test",
+    "episodeGuid": "",
+    "guests": ["esimerkki-vieras"],
+    "topics": ["esimerkki", "testi"],
+    "summary": "Tämä on placeholder-jakso, kunnes ensimmäiset jaksot saadaan julkaistua."
+  }
+]

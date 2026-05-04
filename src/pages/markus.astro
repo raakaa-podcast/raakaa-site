@@ -1,0 +1,325 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SocialIcons from '../components/SocialIcons.astro';
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Markus Suominen',
+  jobTitle: 'Podcast-juontaja',
+  url: 'https://www.raakaa.fi/markus',
+  image: 'https://www.raakaa.fi/images/markus-suominen.jpg',
+  description:
+    'Markus Suominen on RAAKAA Podcastin juontaja. Yli 40 maata, PADI Rescue Diver, enduro, laskuvarjohyppyjä — ja vakaa usko siihen, että uteliaisuus vie pidemmälle kuin asiantuntijuus.',
+  worksFor: {
+    '@type': 'Organization',
+    name: 'RAAKAA Podcast',
+    url: 'https://www.raakaa.fi',
+  },
+  sameAs: [
+    'https://www.instagram.com/raakaapodcast',
+    'https://www.youtube.com/@RaakaaPodcast',
+    'https://x.com/raakaapodcast',
+  ],
+};
+---
+
+<BaseLayout
+  title="Markus Suominen – RAAKAA Podcastin juontaja"
+  description="Tutustu Markus Suomiseen, RAAKAA Podcastin juontajaan. Uteliaisuus, hidas keskustelu ja aitous – kuka Markus on, miksi RAAKAA syntyi ja miten Thaimaan sukellus opetti kuuntelemaan."
+  ogImage="/images/markus-suominen.jpg"
+  ogType="article"
+  structuredData={personSchema}
+>
+  <div class="page max">
+    <header class="profile-head">
+      <p class="eyebrow">Juontaja</p>
+      <h1>Markus <span>Suominen</span></h1>
+      <p class="lead">
+        Mies mikrofonin takana – utelias kysyjä, joka uskoo, että parhaat keskustelut syntyvät hitaasti. Tämä on
+        tarina siitä, miksi RAAKAA syntyi ja kuka studiossa istuu.
+      </p>
+    </header>
+
+    <article class="profile-grid">
+      <div class="img-wrap" data-reveal>
+        <img
+          src="/images/markus-suominen.jpg"
+          alt="Markus Suominen, RAAKAA Podcastin juontaja"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          width="1536"
+          height="2048"
+        />
+      </div>
+
+      <div class="bio glass">
+        <h2>Miksi RAAKAA?</h2>
+        <p>
+          RAAKAA syntyi yksinkertaisesta havainnosta: kaikki puhuvat, mutta harva oikeasti kuuntelee.
+          Sosiaalinen media pikakelaa, haastattelijat keskeyttävät, ja klippikulttuuri leikkaa pois juuri sen kohdan,
+          jossa asiat alkavat käydä kiinnostaviksi. Kaiken päälle ihmiset tärkeilevät ja leikkivät asiantuntijaa,
+          koittavat olla jotain mitä eivät ole.
+        </p>
+        <p>Markus päätti, että nyt riittää.</p>
+        <p>
+          Hän kääri hihat, rakensi studion ja kutsui ihmisiä puhumaan — ja päätti tehdä töitä niin kauan, että
+          jotain aitoa ehtii syntyä.
+        </p>
+        <p>
+          Jokainen jakso on rehellinen kohtaaminen ilman käsikirjoitusta, kelloa tai tarvetta kuulostaa fiksulta.
+          Aiheet liikkuvat yhteiskunnasta ihmismieleen, työn merkityksestä riskiin ja kasvuun — kaikkeen siihen,
+          mikä tekee elämästä kiinnostavan. Tai vähintään hämmentävän.
+        </p>
+
+        <h2>Kuka Markus on?</h2>
+        <p>
+          Markus on tyyppi, joka on hypännyt lentokoneesta, ajanut moottoripyörällä metsässä ja sukeltanut yli 40
+          metrin syvyyteen — ja silti päätynyt siihen, että kiinnostavin paikka on studio, missä kaksi ihmistä
+          istuu alas ja juttelee ajan kanssa.
+        </p>
+        <p>
+          Yli 40 maata, PADI Rescue Diver -kortti, enduropyörä ja muutama laskuvarjohyppy myöhemmin hän on oppinut
+          yhden asian ylitse muiden: uteliaisuus vie pidemmälle kuin asiantuntijuus. Kysymys avaa enemmän ovia
+          kuin vastaus.
+        </p>
+        <blockquote>
+          "En perustanut podcastia siksi, että tietäisin paljon. Olen siinä siksi, että haluan tietää enemmän — ja
+          usein vieraat tietävät jotain, mitä en olisi osannut edes kysyä."
+        </blockquote>
+
+        <h2>Thaimaa, vesi ja se yksi ele</h2>
+        <p>
+          Markuksen PADI Rescue Diver -kurssi Thaimaassa sujui pitkälti suunnitelmien mukaan — paitsi yhdessä
+          harjoituksessa, jossa epäselvä käsimerkki pinnan alla sai koko tiimin kääntymään väärään suuntaan.
+          25 metrin syvyydessä ei kysytä tarkennuksia, siellä joko olet läsnä tai et. Pinnalle päästiin sadan metrin
+          päässä sovitusta.
+        </p>
+        <p>
+          Sama pätee mikrofonin äärellä. Jos mietit seuraavaa kysymystä samalla kun toinen vielä puhuu, et kuule
+          sitä, mitä hän oikeasti yrittää sanoa.
+        </p>
+        <p><strong>RAAKAA rakentuu hetki hetkeltä.</strong></p>
+
+        <h2>Ehdota vierasta tai aihetta</h2>
+        <p>
+          Tunnetko jonkun, jonka tarina ansaitsee enemmän kuin LinkedIn-päivityksen? Onko mielessäsi aihe, johon
+          kaipaat syvempää kulmaa — tai joka ei jätä sinua rauhaan?
+        </p>
+        <p>
+          Lähetä viesti yhteydenottolomakkeella. Markus lukee sen itse. Sitä ei ole ainakaan vielä ulkoistettu
+          tekoälylle.
+        </p>
+        <div class="cta-row">
+          <a class="btn" href="/#yhteys">Ehdota vierasta</a>
+          <a class="btn alt" href="/jaksot">Selaa jaksoja</a>
+        </div>
+      </div>
+    </article>
+
+    <section class="socials-section glass" aria-labelledby="socials-title">
+      <h2 id="socials-title">Seuraa <span>Markusta</span></h2>
+      <ul class="social-list">
+        <li><a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer"><SocialIcons name="instagram" size={22} /><span>Instagram</span></a></li>
+        <li><a href="https://www.youtube.com/@RaakaaPodcast" target="_blank" rel="noreferrer"><SocialIcons name="youtube" size={22} /><span>YouTube</span></a></li>
+        <li><a href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer"><SocialIcons name="x" size={22} /><span>X</span></a></li>
+      </ul>
+    </section>
+  </div>
+
+  <script is:inline>
+    (function () {
+      var targets = document.querySelectorAll('[data-reveal]');
+      if (!targets.length) return;
+      var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion || !('IntersectionObserver' in window)) {
+        targets.forEach(function (el) { el.classList.add('is-revealed'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.25, rootMargin: '0px 0px -10% 0px' });
+      targets.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 7rem;
+  }
+
+  .profile-head {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    text-transform: uppercase;
+    font-style: italic;
+    line-height: 1;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .lead {
+    color: var(--muted);
+    margin: 1.2rem auto 0;
+    max-width: 60ch;
+    font-size: 1.08rem;
+    line-height: 1.65;
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+    gap: 2.5rem;
+    align-items: start;
+    margin-bottom: 3rem;
+  }
+
+  .img-wrap {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    position: sticky;
+    top: 7rem;
+  }
+
+  .img-wrap img {
+    width: 100%;
+    display: block;
+    filter: grayscale(1);
+    transform: scale(1.02);
+    opacity: 0.85;
+    transition:
+      filter 900ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 600ms ease;
+  }
+
+  .img-wrap.is-revealed img {
+    filter: grayscale(0);
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .img-wrap img {
+      filter: grayscale(0);
+      transform: none;
+      opacity: 1;
+      transition: none;
+    }
+  }
+
+  .bio {
+    padding: clamp(1.4rem, 3vw, 2.4rem);
+  }
+
+  .bio h2 {
+    font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+    margin: 1.6rem 0 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .bio h2:first-of-type {
+    margin-top: 0;
+  }
+
+  .bio p {
+    color: var(--muted);
+    line-height: 1.75;
+    margin: 0 0 1rem;
+  }
+
+  .bio strong {
+    color: var(--text);
+  }
+
+  .bio blockquote {
+    margin: 1.2rem 0;
+    padding: 1rem 1.2rem;
+    border-left: 3px solid var(--accent);
+    background: rgba(255, 212, 0, 0.05);
+    color: var(--text);
+    font-style: italic;
+    line-height: 1.7;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-top: 0.8rem;
+  }
+
+  .socials-section {
+    padding: clamp(1.4rem, 3vw, 2.2rem);
+    margin-bottom: 2rem;
+  }
+
+  .socials-section h2 {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+
+  .socials-section h2 span {
+    color: var(--accent);
+  }
+
+  .social-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    color: var(--muted);
+  }
+
+  .social-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: inherit;
+    transition: color 150ms ease;
+  }
+
+  .social-list a:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 900px) {
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .img-wrap {
+      position: static;
+    }
+  }
+</style>

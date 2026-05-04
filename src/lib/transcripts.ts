@@ -11,12 +11,5 @@ export async function getTranscriptForEpisode(episode: Episode) {
   );
 }
 
-export async function getPdfTranscriptForEpisode(episode: Episode) {
-  const pdfTranscripts = await getCollection('pdfTranscripts');
-
-  return (
-    pdfTranscripts.find((entry) => entry.data.episodeGuid === episode.guid) ||
-    pdfTranscripts.find((entry) => entry.data.episodeSlug === episode.slug) ||
-    null
-  );
-}
+export { getPdfTranscriptForEpisode, getAllPdfTranscriptItems } from './litteroinnit';
+export type { PdfTranscriptData } from './litteroinnit';

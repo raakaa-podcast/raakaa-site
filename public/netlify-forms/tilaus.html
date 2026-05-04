@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Netlify Forms – tilaus</title>
+  </head>
+  <body>
+    <!-- Netlify-tilauslomakkeen rekisteröinti staattisesti. Kenttien name-arvot vastaavat etusivun lomaketta. -->
+    <form name="tilaus" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/kiitos-tilaus">
+      <input type="hidden" name="form-name" value="tilaus" />
+      <p hidden><label>Älä täytä tätä kenttää: <input name="bot-field" /></label></p>
+      <p><label>Sähköposti <input type="email" name="sahkoposti" /></label></p>
+      <p><label><input type="checkbox" name="suostumus" value="kylla" /> Suostumus</label></p>
+      <p><button type="submit">Tilaa</button></p>
+    </form>
+  </body>
+</html>

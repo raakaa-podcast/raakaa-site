@@ -1,0 +1,79 @@
+---
+type IconName =
+  | 'instagram'
+  | 'youtube'
+  | 'x'
+  | 'spotify'
+  | 'apple'
+  | 'rss'
+  | 'tiktok'
+  | 'facebook';
+
+type Props = {
+  name: IconName;
+  size?: number;
+  title?: string;
+};
+
+const { name, size = 18, title } = Astro.props;
+---
+
+{name === 'instagram' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <rect x="2" y="2" width="20" height="20" rx="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+)}
+
+{name === 'youtube' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <path d="M23 7.5a4 4 0 0 0-2.8-2.8C18.4 4.2 12 4.2 12 4.2s-6.4 0-8.2.5A4 4 0 0 0 1 7.5C.5 9.3.5 12 .5 12s0 2.7.5 4.5A4 4 0 0 0 3.8 19.3c1.8.5 8.2.5 8.2.5s6.4 0 8.2-.5A4 4 0 0 0 23 16.5c.5-1.8.5-4.5.5-4.5s0-2.7-.5-4.5zM9.7 15.5V8.5L15.6 12z" />
+  </svg>
+)}
+
+{name === 'x' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <path d="M18.244 3H21l-6.52 7.45L22 21h-6.91l-4.61-5.94L4.97 21H2.21l6.94-7.94L2 3h6.91l4.18 5.4L18.244 3zm-2.42 16.07h1.55L7.42 4.84H5.78l10.044 14.23z" />
+  </svg>
+)}
+
+{name === 'spotify' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.43a.62.62 0 0 1-.85.21c-2.34-1.43-5.28-1.75-8.74-.96a.62.62 0 1 1-.27-1.21c3.78-.85 7.04-.48 9.65 1.11.3.18.39.57.21.85zm1.23-2.74a.78.78 0 0 1-1.07.26c-2.68-1.65-6.77-2.13-9.94-1.17a.78.78 0 0 1-.45-1.49c3.62-1.1 8.13-.56 11.21 1.33.37.23.49.71.25 1.07zm.11-2.86c-3.21-1.91-8.51-2.08-11.58-1.15a.93.93 0 1 1-.54-1.78c3.52-1.07 9.36-.86 13.06 1.34a.93.93 0 1 1-.94 1.59z" />
+  </svg>
+)}
+
+{name === 'apple' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <path d="M12 1.5a10.5 10.5 0 0 0-2.74 20.64v-3.43a4 4 0 1 1 5.48 0v3.43A10.5 10.5 0 0 0 12 1.5zm0 8a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-1.4 9.7v3.06a10.4 10.4 0 0 0 2.8 0V19.2a4 4 0 0 1-2.8 0z" />
+  </svg>
+)}
+
+{name === 'rss' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <path d="M4 11a9 9 0 0 1 9 9" />
+    <path d="M4 4a16 16 0 0 1 16 16" />
+    <circle cx="5" cy="19" r="1" />
+  </svg>
+)}
+
+{name === 'tiktok' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <path d="M16.5 2c.4 2.5 2 4.4 4.5 4.7v3a8 8 0 0 1-4.5-1.4v6.7a6.5 6.5 0 1 1-6.5-6.5c.3 0 .6 0 .9.06v3.1a3.5 3.5 0 1 0 2.6 3.4V2h3z" />
+  </svg>
+)}
+
+{name === 'facebook' && (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden={!title} role={title ? 'img' : undefined}>
+    {title && <title>{title}</title>}
+    <path d="M22 12a10 10 0 1 0-11.56 9.88v-7H8v-2.88h2.44V9.41c0-2.42 1.45-3.76 3.66-3.76 1.06 0 2.17.19 2.17.19v2.39h-1.22c-1.2 0-1.58.75-1.58 1.51v1.81h2.69l-.43 2.88h-2.26v7A10 10 0 0 0 22 12z" />
+  </svg>
+)}

@@ -1,0 +1,138 @@
+---
+import SocialIcons from './SocialIcons.astro';
+---
+
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-inner">
+    <div class="brand-block">
+      <a class="brand-link" href="/" aria-label="RAAKAA Podcast etusivu">
+        <span class="brand-word">Raakaa<span class="dot">.</span></span>
+      </a>
+      <p class="tagline">Sitoutumaton, rehellinen ja kiehtova suomalainen keskusteluohjelma.</p>
+    </div>
+
+    <nav class="footer-nav" aria-label="Sivuston linkit">
+      <a href="/">Etusivu</a>
+      <a href="/jaksot">Jaksot</a>
+      <a href="/markus">Markus</a>
+      <a href="/vieraat">Vieraat</a>
+      <a href="/#yhteys">Yhteys</a>
+      <a href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer">RSS-syöte</a>
+    </nav>
+
+    <div class="footer-social">
+      <p class="social-title">Seuraa meitä</p>
+      <ul>
+        <li><a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="Instagram"><SocialIcons name="instagram" size={20} /><span>Instagram</span></a></li>
+        <li><a href="https://www.youtube.com/@RaakaaPodcast" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" size={20} /><span>YouTube</span></a></li>
+        <li><a href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="X"><SocialIcons name="x" size={20} /><span>X</span></a></li>
+        <li><a href="https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY" target="_blank" rel="noreferrer" aria-label="Spotify"><SocialIcons name="spotify" size={20} /><span>Spotify</span></a></li>
+        <li><a href="https://podcasts.apple.com/fi/podcast/raakaa/id1896272431" target="_blank" rel="noreferrer" aria-label="Apple Podcasts"><SocialIcons name="apple" size={20} /><span>Apple Podcasts</span></a></li>
+        <li><a href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer" aria-label="RSS"><SocialIcons name="rss" size={20} /><span>RSS-syöte</span></a></li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="copy">© 2026 RAAKAA Podcast – kaikki oikeudet pidätetään</p>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 3rem 0 8rem;
+    margin-top: 4rem;
+  }
+
+  .footer-inner {
+    width: min(1120px, 92vw);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1.6fr;
+    gap: 2.5rem;
+  }
+
+  .brand-block .brand-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text);
+    margin-bottom: 0.7rem;
+  }
+
+  .brand-block .brand-word {
+    font-size: 2rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .brand-block .dot {
+    color: var(--accent);
+  }
+
+  .tagline {
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.55;
+    max-width: 36ch;
+  }
+
+  .footer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--muted);
+  }
+
+  .footer-nav a {
+    transition: color 150ms ease;
+  }
+
+  .footer-nav a:hover {
+    color: var(--accent);
+  }
+
+  .footer-social .social-title {
+    margin: 0 0 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .footer-social ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-social a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--muted);
+    transition: color 150ms ease;
+  }
+
+  .footer-social a:hover {
+    color: var(--accent);
+  }
+
+  .copy {
+    text-align: center;
+    color: #6e6e6e;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 2.5rem 0 0;
+  }
+
+  @media (max-width: 800px) {
+    .footer-inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

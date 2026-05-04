@@ -1,0 +1,351 @@
+---
+import SocialIcons from './SocialIcons.astro';
+const path = Astro.url.pathname.replace(/\/$/, '');
+const isHome = path === '' || path === '/';
+
+type LinkDef = { href: string; label: string };
+const navLinks: LinkDef[] = isHome
+  ? [
+      { href: '#jaksot', label: 'Jaksot' },
+      { href: '/markus', label: 'Markus' },
+      { href: '/vieraat', label: 'Vieraat' },
+      { href: '#tilaa', label: 'Tilaa' },
+      { href: '#yhteys', label: 'Yhteys' },
+    ]
+  : [
+      { href: '/', label: 'Etusivu' },
+      { href: '/jaksot', label: 'Jaksot' },
+      { href: '/markus', label: 'Markus' },
+      { href: '/vieraat', label: 'Vieraat' },
+      { href: '/#tilaa', label: 'Tilaa' },
+      { href: '/#yhteys', label: 'Yhteys' },
+    ];
+---
+
+<header class="site-header glass" role="banner">
+  <div class="header-inner">
+    <a class="brand-link" href="/" aria-label="RAAKAA Podcast etusivu">
+      <span class="brand-word">Raakaa<span class="brand-dot">.</span></span>
+    </a>
+
+    <nav class="primary-nav" aria-label="Päänavigaatio">
+      {navLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+    </nav>
+
+    <div class="header-extras">
+      <div class="header-socials" aria-label="Sosiaalinen media">
+        <a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="Instagram"><SocialIcons name="instagram" /></a>
+        <a href="https://www.youtube.com/@RaakaaPodcast" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" /></a>
+        <a href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="X"><SocialIcons name="x" /></a>
+      </div>
+      <a class="btn cta" href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer">Kuuntele</a>
+
+      <button
+        class="hamburger"
+        type="button"
+        aria-label="Avaa valikko"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        id="hamburger-button"
+      >
+        <span class="bar" aria-hidden="true"></span>
+        <span class="bar" aria-hidden="true"></span>
+        <span class="bar" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div
+  id="mobile-menu"
+  class="mobile-menu"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Sivuston valikko"
+  hidden
+>
+  <nav class="mobile-nav" aria-label="Mobiilinavigaatio">
+    {navLinks.map((link) => <a href={link.href} data-mobile-link>{link.label}</a>)}
+  </nav>
+
+  <div class="mobile-socials">
+    <a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="Instagram"><SocialIcons name="instagram" size={22} /></a>
+    <a href="https://www.youtube.com/@RaakaaPodcast" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" size={22} /></a>
+    <a href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="X"><SocialIcons name="x" size={22} /></a>
+    <a href="https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY" target="_blank" rel="noreferrer" aria-label="Spotify"><SocialIcons name="spotify" size={22} /></a>
+    <a href="https://podcasts.apple.com/fi/podcast/raakaa/id1896272431" target="_blank" rel="noreferrer" aria-label="Apple Podcasts"><SocialIcons name="apple" size={22} /></a>
+  </div>
+
+  <a class="btn mobile-cta" href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer">Kuuntele kaikilla alustoilla</a>
+</div>
+
+<script is:inline>
+  (function () {
+    var btn = document.getElementById('hamburger-button');
+    var menu = document.getElementById('mobile-menu');
+    if (!btn || !menu) return;
+
+    function setOpen(open) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.classList.toggle('is-open', open);
+      menu.hidden = !open;
+      document.body.classList.toggle('menu-open', open);
+    }
+
+    btn.addEventListener('click', function () {
+      var isOpen = btn.getAttribute('aria-expanded') === 'true';
+      setOpen(!isOpen);
+    });
+
+    menu.querySelectorAll('[data-mobile-link]').forEach(function (link) {
+      link.addEventListener('click', function () { setOpen(false); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+
+    var mq = window.matchMedia('(min-width: 901px)');
+    mq.addEventListener('change', function (e) {
+      if (e.matches) setOpen(false);
+    });
+  })();
+</script>
+
+<style>
+  .site-header {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1120px, 92vw);
+    z-index: 70;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 12px 18px;
+  }
+
+  .brand-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text);
+  }
+
+  .brand-word {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .brand-dot {
+    color: var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .brand-word {
+      font-size: 1.3rem;
+    }
+  }
+
+  .primary-nav {
+    display: flex;
+    gap: 1.6rem;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+  }
+
+  .primary-nav a {
+    color: var(--muted);
+    transition: color 150ms ease;
+  }
+
+  .primary-nav a:hover {
+    color: var(--accent);
+  }
+
+  .header-extras {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .header-socials {
+    display: flex;
+    gap: 0.85rem;
+    color: var(--muted);
+  }
+
+  .header-socials a {
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 150ms ease, transform 150ms ease;
+  }
+
+  .header-socials a:hover {
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .cta {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.55rem 1rem;
+  }
+
+  /* Hamburger button */
+  .hamburger {
+    display: none;
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .hamburger .bar {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 18px;
+    height: 2px;
+    background: var(--text);
+    transform: translate(-50%, -50%);
+    transition: transform 220ms ease, opacity 180ms ease;
+  }
+
+  .hamburger .bar:nth-child(1) {
+    transform: translate(-50%, calc(-50% - 6px));
+  }
+
+  .hamburger .bar:nth-child(3) {
+    transform: translate(-50%, calc(-50% + 6px));
+  }
+
+  .hamburger.is-open .bar:nth-child(1) {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .hamburger.is-open .bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger.is-open .bar:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  /* Mobile drawer */
+  .mobile-menu {
+    position: fixed;
+    inset: 70px 0 0;
+    z-index: 65;
+    background: rgba(7, 7, 7, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 2rem 1.5rem 4rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .mobile-menu[hidden] {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .mobile-nav a {
+    color: var(--text);
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .mobile-nav a:hover,
+  .mobile-nav a:focus-visible {
+    color: var(--accent);
+  }
+
+  .mobile-socials {
+    display: flex;
+    gap: 1.4rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+  }
+
+  .mobile-socials a {
+    color: inherit;
+  }
+
+  .mobile-socials a:hover,
+  .mobile-socials a:focus-visible {
+    color: var(--accent);
+  }
+
+  .mobile-cta {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+  }
+
+  :global(body.menu-open) {
+    overflow: hidden;
+  }
+
+  @media (max-width: 900px) {
+    .primary-nav {
+      display: none;
+    }
+    .header-socials {
+      display: none;
+    }
+    .cta {
+      display: none;
+    }
+    .hamburger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  @media (min-width: 901px) {
+    .mobile-menu {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .site-header {
+      top: 8px;
+    }
+    .mobile-menu {
+      inset: 64px 0 0;
+    }
+  }
+</style>

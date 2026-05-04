@@ -1,0 +1,232 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EpisodeCard from '../../components/EpisodeCard.astro';
+import { getEpisodesFromRSS } from '../../lib/rss';
+import { getAllGuests, getEpisodesForGuest, type Guest } from '../../lib/episodeMeta';
+import { getAllPdfTranscriptItems } from '../../lib/litteroinnit';
+
+export async function getStaticPaths() {
+  const guests = getAllGuests();
+  return guests.map((guest) => ({
+    params: { slug: guest.slug },
+    props: { guest },
+  }));
+}
+
+type Props = { guest: Guest };
+const { guest } = Astro.props;
+
+const episodes = await getEpisodesFromRSS();
+const guestEpisodes = getEpisodesForGuest(guest.slug, episodes);
+
+const pdfs = await getAllPdfTranscriptItems();
+const pdfBySlug = new Map<string, string>();
+const pdfByGuid = new Map<string, string>();
+for (const item of pdfs) {
+  if (item.episodeSlug) pdfBySlug.set(item.episodeSlug, item.pdfUrl);
+  if (item.episodeGuid) pdfByGuid.set(item.episodeGuid, item.pdfUrl);
+}
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: guest.name,
+  url: `https://www.raakaa.fi/vieraat/${guest.slug}`,
+  description: guest.bio,
+  ...(guest.image ? { image: guest.image.startsWith('http') ? guest.image : `https://www.raakaa.fi${guest.image}` } : {}),
+  ...(guest.role ? { jobTitle: guest.role } : {}),
+  ...(guest.links && guest.links.length
+    ? { sameAs: guest.links.map((l) => l.url) }
+    : {}),
+};
+---
+
+<BaseLayout
+  title={`${guest.name} – RAAKAA Podcastin vieras`}
+  description={`${guest.name}: ${guest.bio.slice(0, 140)}`}
+  ogImage={guest.image || '/og-image.jpg'}
+  ogType="article"
+  structuredData={personSchema}
+>
+  <div class="page max">
+    <nav class="breadcrumb" aria-label="Murupolku">
+      <a href="/vieraat">← Kaikki vieraat</a>
+    </nav>
+
+    <header class="profile-head glass">
+      {guest.image && (
+        <img
+          class="photo"
+          src={guest.image}
+          alt={guest.name}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          width="800"
+          height="800"
+        />
+      )}
+      {!guest.image && <div class="photo placeholder" aria-hidden="true">{guest.name.charAt(0)}</div>}
+
+      <div>
+        <p class="eyebrow">Vieras</p>
+        <h1>{guest.name}</h1>
+        {guest.role && <p class="role">{guest.role}</p>}
+        <div class="bio" set:html={guest.bio.replace(/\n/g, '<br />')}></div>
+
+        {guest.links && guest.links.length > 0 && (
+          <ul class="links">
+            {guest.links.map((link) => (
+              <li>
+                <a href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </header>
+
+    <section class="episodes" aria-labelledby="episodes-title">
+      <h2 id="episodes-title">Jaksot, joissa <span>{guest.name}</span> on mukana</h2>
+      {guestEpisodes.length > 0 ? (
+        <div class="episode-grid">
+          {guestEpisodes.map((episode) => (
+            <EpisodeCard
+              episode={episode}
+              pdfUrl={
+                pdfBySlug.get(episode.slug) ??
+                (episode.guid ? pdfByGuid.get(episode.guid) ?? null : null)
+              }
+              headingLevel="h3"
+            />
+          ))}
+        </div>
+      ) : (
+        <p class="muted">
+          Tällä vieraalla ei ole vielä julkaistuja jaksoja sivustolla.
+        </p>
+      )}
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 7rem;
+  }
+
+  .breadcrumb {
+    margin-bottom: 1rem;
+  }
+
+  .breadcrumb a {
+    color: var(--muted);
+    font-size: 0.85rem;
+    transition: color 150ms ease;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--accent);
+  }
+
+  .profile-head {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2rem;
+    align-items: start;
+    padding: clamp(1.4rem, 3vw, 2.4rem);
+    margin-bottom: 2rem;
+  }
+
+  .photo {
+    width: 220px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .photo.placeholder {
+    background: rgba(255, 212, 0, 0.12);
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 5rem;
+    display: grid;
+    place-items: center;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    line-height: 1.1;
+  }
+
+  .role {
+    margin: 0 0 1rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .bio {
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .links {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.2rem;
+  }
+
+  .links a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .episodes h2 {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    text-transform: uppercase;
+    font-style: italic;
+    margin: 0 0 1.2rem;
+  }
+
+  .episodes h2 span {
+    color: var(--accent);
+  }
+
+  .episode-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  @media (max-width: 700px) {
+    .profile-head {
+      grid-template-columns: 1fr;
+    }
+
+    .photo {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+    }
+  }
+</style>

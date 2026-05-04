@@ -1,21 +1,29 @@
 ---
 import StickyPlayer from '../components/StickyPlayer.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 
 type Props = {
   title?: string;
   description?: string;
-  showHeader?: boolean;
-  fullWidth?: boolean;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  noindex?: boolean;
   structuredData?: Record<string, unknown> | Record<string, unknown>[];
 };
 
 const {
-  title = 'RAAKAA Podcast - Kiehtova suomalainen keskusteluohjelma',
-  description = 'Sitoutumaton, rehellinen ja kiehtova suomalainen podcast.',
-  showHeader = true,
-  fullWidth = false,
+  title = 'RAAKAA Podcast – suomalainen keskustelupodcast | Markus Suominen',
+  description = 'RAAKAA Podcast on sitoutumaton, rehellinen ja kiehtova suomalainen keskusteluohjelma. Pitkät keskustelut yhteiskunnasta, ihmismielestä ja ajankohtaisista aiheista. Kuuntele Spotifyssa, Apple Podcastsissa ja YouTubessa.',
+  ogImage = '/og-image.jpg',
+  ogType = 'website',
+  noindex = false,
   structuredData,
 } = Astro.props;
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://www.raakaa.fi';
+const canonical = new URL(Astro.url.pathname, siteUrl).toString().replace(/\/$/, '') || siteUrl;
+const ogImageUrl = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 
 const structuredDataItems = Array.isArray(structuredData)
   ? structuredData
@@ -29,36 +37,56 @@ const structuredDataItems = Array.isArray(structuredData)
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
+    <meta name="theme-color" content="#070707" />
+    <meta name="color-scheme" content="dark" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="format-detection" content="telephone=no" />
+
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title="RAAKAA Podcast RSS" href="https://media.rss.com/raakaapodcast/feed.xml" />
+
+    <link rel="preconnect" href="https://media.rss.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="dns-prefetch" href="https://player.rss.com" />
+
+    <meta property="og:site_name" content="RAAKAA Podcast" />
+    <meta property="og:locale" content="fi_FI" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <meta name="keywords" content="podcast, suomalainen podcast, keskustelupodcast, RAAKAA, Markus Suominen, suomi, yhteiskunta, ajankohtaista, haastattelu, suomenkielinen podcast" />
+    <meta name="author" content="Markus Suominen" />
+    <meta name="publisher" content="RAAKAA Podcast" />
+
     {
       structuredDataItems.map((item) => (
-        <script type="application/ld+json" set:html={JSON.stringify(item)}></script>
+        <script type="application/ld+json" set:html={JSON.stringify(item)} />
       ))
     }
   </head>
   <body>
-    {
-      showHeader && (
-        <header class="site-header glass">
-          <div class="container nav-content">
-            <a class="brand" href="/">RAAKAA</a>
-            <nav>
-              <ul>
-                <li><a href="/">Etusivu</a></li>
-                <li><a href="/jaksot">Jaksot</a></li>
-                <li><a href="/admin">Transcriptit</a></li>
-              </ul>
-            </nav>
-          </div>
-        </header>
-      )
-    }
+    <a class="skip-link" href="#main">Siirry pääsisältöön</a>
 
-    <main class:list={[fullWidth ? 'main-full' : 'container']}>
+    <SiteHeader />
+
+    <main id="main">
       <slot />
     </main>
+
+    <SiteFooter />
 
     <StickyPlayer />
   </body>
@@ -95,12 +123,27 @@ const structuredDataItems = Array.isArray(structuredData)
     overflow-x: clip;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   a {
     color: inherit;
     text-decoration: none;
   }
 
-  .container {
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  main {
+    min-height: 60vh;
+    padding-bottom: 9rem;
+  }
+
+  .container,
+  .max {
     width: min(1120px, 92vw);
     margin-inline: auto;
   }
@@ -109,60 +152,14 @@ const structuredDataItems = Array.isArray(structuredData)
     border: 1px solid var(--border);
     background: var(--surface);
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-  }
-
-  .site-header {
-    position: sticky;
-    top: 10px;
-    z-index: 30;
-    margin: 10px auto 24px;
-    width: min(1120px, 92vw);
-  }
-
-  .nav-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-  }
-
-  .brand {
-    font-size: 1.2rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-  }
-
-  nav ul {
-    display: flex;
-    gap: 1rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  nav a {
-    color: var(--muted);
-    font-weight: 600;
-  }
-
-  nav a:hover {
-    color: var(--accent);
   }
 
   .section-title {
     font-size: clamp(1.5rem, 2.3vw, 2.2rem);
     margin: 0 0 1rem;
-  }
-
-  main.container {
-    padding-bottom: 8.5rem;
-  }
-
-  main.main-full {
-    width: 100%;
-    padding-bottom: 8.5rem;
   }
 
   .muted {
@@ -181,10 +178,47 @@ const structuredDataItems = Array.isArray(structuredData)
     font-weight: 700;
     padding: 0.75rem 1.2rem;
     cursor: pointer;
+    transition: background 150ms ease, transform 150ms ease;
   }
 
   .btn:hover {
     background: var(--accent-dark);
+  }
+
+  .btn.alt {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border: 1px solid var(--border);
+  }
+
+  .btn.alt:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .btn.small {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .skip-link:focus {
+    left: 16px;
+    top: 16px;
+    width: auto;
+    height: auto;
+    background: var(--accent);
+    color: #111;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    z-index: 200;
   }
 
   .sticky-player {
@@ -248,19 +282,14 @@ const structuredDataItems = Array.isArray(structuredData)
     width: 100%;
   }
 
-  @media (max-width: 720px) {
-    .nav-content {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    nav ul {
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    main.container {
-      padding-bottom: 9.5rem;
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 </style>

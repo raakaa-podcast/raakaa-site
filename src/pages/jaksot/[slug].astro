@@ -1,96 +1,154 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getEpisodesFromRSS, formatFinnishDate, getRssEmbedUrl } from '../../lib/rss';
+import EpisodeButtons from '../../components/EpisodeButtons.astro';
+import { formatFinnishDate, getEpisodesFromRSS, getRssEmbedUrl, type Episode } from '../../lib/rss';
 import { getPdfTranscriptForEpisode, getTranscriptForEpisode } from '../../lib/transcripts';
+import {
+  durationToISO,
+  formatDuration,
+  getEpisodeMeta,
+  resolveGuestNames,
+} from '../../lib/episodeMeta';
 
-const episodes = await getEpisodesFromRSS();
-const { slug = '' } = Astro.params;
-const episode = episodes.find((item) => item.slug === slug);
-
-if (!episode) {
-  return Astro.redirect('/jaksot');
+export async function getStaticPaths() {
+  const episodes = await getEpisodesFromRSS();
+  return episodes.map((episode) => ({
+    params: { slug: episode.slug },
+    props: { episode },
+  }));
 }
+
+type Props = { episode: Episode };
+const { episode } = Astro.props;
 
 const transcript = await getTranscriptForEpisode(episode);
 const { Content } = transcript ? await transcript.render() : { Content: null };
 const pdfTranscript = await getPdfTranscriptForEpisode(episode);
 const embedUrl = getRssEmbedUrl(episode.link);
-const episodeSchema = {
+
+const cleanDescription = episode.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const meta = getEpisodeMeta(episode);
+const duration = formatDuration(episode.duration);
+const isoDuration = durationToISO(episode.duration);
+const guests = resolveGuestNames(meta.guests ?? []);
+const topics = meta.topics ?? [];
+
+const episodeUrl = `https://www.raakaa.fi/jaksot/${episode.slug}`;
+const heroImage = episode.imageUrl;
+
+const podcastSeriesSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'PodcastSeries',
+  name: 'RAAKAA Podcast',
+  url: 'https://www.raakaa.fi',
+  inLanguage: 'fi',
+  webFeed: 'https://media.rss.com/raakaapodcast/feed.xml',
+  description:
+    'Sitoutumaton, rehellinen ja kiehtova suomalainen keskusteluohjelma, jossa käsitellään yhteiskuntaa, ihmismieltä ja ajankohtaisia aiheita pitkillä keskusteluilla.',
+  publisher: { '@type': 'Person', name: 'Markus Suominen' },
+};
+
+const episodeSchema: Record<string, unknown> = {
   '@context': 'https://schema.org',
   '@type': 'PodcastEpisode',
   name: episode.title,
-  url: `https://www.raakaa.fi/jaksot/${episode.slug}`,
+  url: episodeUrl,
   datePublished: episode.publishedAt || undefined,
+  inLanguage: 'fi',
+  description: cleanDescription.slice(0, 500),
   associatedMedia: {
     '@type': 'MediaObject',
     contentUrl: episode.audioUrl,
     encodingFormat: 'audio/mpeg',
+    ...(isoDuration ? { duration: isoDuration } : {}),
   },
   partOfSeries: {
     '@type': 'PodcastSeries',
     name: 'RAAKAA Podcast',
     url: 'https://www.raakaa.fi',
+    webFeed: 'https://media.rss.com/raakaapodcast/feed.xml',
   },
-  description: episode.description.replace(/<[^>]+>/g, ' ').trim().slice(0, 300),
 };
+
+if (heroImage) episodeSchema.image = heroImage;
+if (isoDuration) episodeSchema.timeRequired = isoDuration;
+if (topics.length > 0) episodeSchema.keywords = topics.join(', ');
+if (guests.length > 0) {
+  episodeSchema.actor = guests.map((g) => ({
+    '@type': 'Person',
+    name: g.name,
+    url: `https://www.raakaa.fi/vieraat/${g.slug}`,
+  }));
+}
 ---
 
 <BaseLayout
   title={`${episode.title} | RAAKAA Podcast`}
-  description={episode.description.replace(/<[^>]+>/g, '').slice(0, 160)}
-  structuredData={episodeSchema}
+  description={cleanDescription.slice(0, 160)}
+  ogImage={heroImage}
+  ogType="article"
+  structuredData={[episodeSchema, podcastSeriesSchema]}
 >
-  <article class="episode-detail glass">
-    <p class="muted">{formatFinnishDate(episode.publishedAt)}</p>
-    <h1>{episode.title}</h1>
+  <div class="page max">
+    <nav class="breadcrumb" aria-label="Murupolku">
+      <a href="/jaksot">← Kaikki jaksot</a>
+    </nav>
 
-    {
-      episode.imageUrl && (
-        <img src={episode.imageUrl} alt={episode.title} loading="lazy" />
-      )
-    }
+    <article class="episode-detail glass">
+      <div class="meta-row">
+        <span class="date">{formatFinnishDate(episode.publishedAt)}</span>
+        {duration && <span class="duration" aria-label={`Kesto ${duration}`}>{duration}</span>}
+      </div>
 
-    <p class="description" set:html={episode.description}></p>
+      <h1>{episode.title}</h1>
 
-    <button
-      class="btn"
-      type="button"
-      data-play-episode
-      data-episode-title={episode.title}
-      data-episode-audio={episode.audioUrl}
-    >
-      Kuuntele tässä
-    </button>
-  </article>
-
-  <section class="transcript glass">
-    <h2 class="section-title">Jakson transcripti</h2>
-    {
-      Content ? (
-        <Content />
-      ) : (
-        <p class="muted">Tähän jaksoon ei ole vielä julkaistu transcriptia.</p>
-      )
-    }
-  </section>
-
-  <section class="transcript glass">
-    <h2 class="section-title">PDF-litterointi</h2>
-    {
-      pdfTranscript ? (
-        <p>
-          <a class="btn" href={pdfTranscript.data.pdfUrl} target="_blank" rel="noreferrer">Avaa litterointi (PDF)</a>
+      {guests.length > 0 && (
+        <p class="guests">
+          <span class="label">Vieras{guests.length === 1 ? '' : 'sat'}:</span>
+          {guests.map((g, i) => (
+            <span>
+              <a href={`/vieraat/${g.slug}`}>{g.name}</a>{i < guests.length - 1 ? ', ' : ''}
+            </span>
+          ))}
         </p>
-      ) : (
-        <p class="muted">Tähän jaksoon ei ole vielä lisätty PDF-litterointia.</p>
-      )
-    }
-  </section>
+      )}
 
-  <section class="embed glass">
-    <h2 class="section-title">RSS.com upotus</h2>
-    {
-      embedUrl ? (
+      {topics.length > 0 && (
+        <ul class="topics" aria-label="Aiheet">
+          {topics.map((t) => <li class="topic">#{t}</li>)}
+        </ul>
+      )}
+
+      {heroImage && (
+        <div class="cover">
+          <img
+            src={heroImage}
+            alt={episode.title}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            width="800"
+            height="800"
+          />
+        </div>
+      )}
+
+      <div class="actions">
+        <EpisodeButtons
+          slug={episode.slug}
+          title={episode.title}
+          audioUrl={episode.audioUrl}
+          pdfUrl={pdfTranscript?.data.pdfUrl ?? null}
+          size="default"
+        />
+      </div>
+
+      <div class="description" set:html={episode.description}></div>
+    </article>
+
+    {embedUrl && (
+      <section class="embed glass" aria-labelledby="embed-title">
+        <h2 id="embed-title" class="section-title">Kuuntele tästä</h2>
         <iframe
           src={embedUrl}
           title={`RSS.com upotus: ${episode.title}`}
@@ -99,21 +157,140 @@ const episodeSchema = {
           loading="lazy"
           allow="autoplay"
         ></iframe>
-      ) : (
-        <p class="muted">Upotetta ei voitu muodostaa tästä jaksosta. Tarkista että jakson linkki tulee RSS.com-feedistä.</p>
-      )
-    }
-  </section>
+      </section>
+    )}
+
+    {Content && (
+      <section class="transcript glass" aria-labelledby="transcript-title">
+        <h2 id="transcript-title" class="section-title">Jakson transkripti</h2>
+        <Content />
+      </section>
+    )}
+  </div>
 </BaseLayout>
 
 <style>
+  .page {
+    padding-top: 7rem;
+  }
+
+  .breadcrumb {
+    margin-bottom: 1rem;
+  }
+
+  .breadcrumb a {
+    color: var(--muted);
+    font-size: 0.85rem;
+    transition: color 150ms ease;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--accent);
+  }
+
   .episode-detail {
-    padding: clamp(1rem, 2.5vw, 2rem);
-    margin-bottom: 2rem;
+    padding: clamp(1.2rem, 3vw, 2.4rem);
+    margin-bottom: 1.6rem;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .date {
+    color: var(--accent);
+  }
+
+  .duration {
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  h1 {
+    margin: 0.6rem 0 0.8rem;
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    line-height: 1.1;
+  }
+
+  .guests {
+    margin: 0 0 0.6rem;
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  .guests .label {
+    color: var(--text);
+    font-weight: 600;
+    margin-right: 0.4rem;
+  }
+
+  .guests a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .topics {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .topic {
+    font-size: 0.72rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+
+  .cover {
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    margin: 0.4rem 0 1.4rem;
+    width: min(100%, 520px);
+  }
+
+  .cover img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    filter: grayscale(1);
+    transition: filter 320ms ease, transform 380ms ease;
+  }
+
+  .cover:hover img,
+  .cover:focus-within img {
+    filter: grayscale(0);
+    transform: scale(1.03);
+  }
+
+  .actions {
+    margin-bottom: 1.4rem;
   }
 
   .description {
     color: var(--muted);
+    line-height: 1.7;
   }
 
   .description :global(img),
@@ -121,38 +298,22 @@ const episodeSchema = {
   .description :global(iframe) {
     max-width: 100%;
     height: auto;
+    border-radius: 10px;
   }
 
   .description :global(pre) {
     overflow-x: auto;
   }
 
-  h1 {
-    margin-top: 0.2rem;
-    font-size: clamp(1.8rem, 4.5vw, 3rem);
-  }
-
-  img {
-    width: min(100%, 680px);
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    margin: 1rem 0;
-  }
-
-  .transcript {
-    margin-bottom: 3rem;
-    padding: clamp(1rem, 2.5vw, 2rem);
-  }
-
+  .transcript,
   .embed {
-    margin-bottom: 3rem;
-    padding: clamp(1rem, 2.5vw, 2rem);
+    margin-bottom: 1.6rem;
+    padding: clamp(1.2rem, 3vw, 2rem);
   }
 
   iframe {
     border: 0;
     border-radius: 10px;
     background: #0e0e0e;
-    margin-top: 0.4rem;
   }
 </style>

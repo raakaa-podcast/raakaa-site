@@ -2,36 +2,246 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeCard from '../../components/EpisodeCard.astro';
 import { getEpisodesFromRSS } from '../../lib/rss';
+import { getAllPdfTranscriptItems } from '../../lib/litteroinnit';
+import { getEpisodeMeta } from '../../lib/episodeMeta';
 
 const episodes = await getEpisodesFromRSS();
+const pdfs = await getAllPdfTranscriptItems();
+
+const pdfBySlug = new Map<string, string>();
+const pdfByGuid = new Map<string, string>();
+for (const item of pdfs) {
+  if (item.episodeSlug) pdfBySlug.set(item.episodeSlug, item.pdfUrl);
+  if (item.episodeGuid) pdfByGuid.set(item.episodeGuid, item.pdfUrl);
+}
+
+const allTopicsSet = new Set<string>();
+for (const ep of episodes) {
+  for (const t of getEpisodeMeta(ep).topics ?? []) allTopicsSet.add(t);
+}
+const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
 ---
 
-<BaseLayout title="Jaksot | RAAKAA Podcast" description="Selaa kaikki RAAKAA Podcastin jaksot.">
-  <section>
-    <h1 class="section-title">Kaikki jaksot</h1>
-    <p class="muted">Uusimmat keskustelut suoraan RSS.com-syötteestä.</p>
+<BaseLayout
+  title="Jaksot | RAAKAA Podcast"
+  description="Selaa kaikki RAAKAA Podcastin jaksot. Suodata aiheen perusteella tai etsi vieraan tai avainsanan mukaan – kuuntele tai avaa litterointi PDF-muodossa."
+>
+  <div class="page max">
+    <header class="page-head">
+      <h1>Kaikki <span>jaksot</span></h1>
+    </header>
 
-    {
-      episodes.length > 0 ? (
-        <div class="episode-grid">
-          {episodes.map((episode) => <EpisodeCard episode={episode} />)}
+    {episodes.length > 0 ? (
+      <>
+        <div class="filter-bar glass" role="search" aria-label="Jaksohaku">
+          <label class="search-label">
+            <span class="visually-hidden">Hae jaksoja</span>
+            <input
+              id="episode-search"
+              type="search"
+              placeholder="Etsi jaksoa, vierasta tai aihetta…"
+              autocomplete="off"
+              aria-label="Etsi jaksoa, vierasta tai aihetta"
+            />
+          </label>
+
+          {allTopics.length > 0 && (
+            <div class="topic-filter" role="group" aria-label="Suodata aiheen mukaan">
+              <button class="topic-chip is-active" type="button" data-topic="">
+                Kaikki
+              </button>
+              {allTopics.map((topic) => (
+                <button class="topic-chip" type="button" data-topic={topic}>
+                  #{topic}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <p class="muted">Jaksoja ei voitu hakea tällä hetkellä. Tarkista feed-osoite.</p>
-      )
-    }
-  </section>
+
+        <p class="result-count muted" aria-live="polite">
+          <span id="result-visible">{episodes.length}</span>
+          /
+          <span id="result-total">{episodes.length}</span>
+          jaksoa
+        </p>
+
+        <div id="episode-grid" class="episode-grid">
+          {episodes.map((episode) => (
+            <EpisodeCard
+              episode={episode}
+              pdfUrl={
+                pdfBySlug.get(episode.slug) ??
+                (episode.guid ? pdfByGuid.get(episode.guid) ?? null : null)
+              }
+              headingLevel="h2"
+            />
+          ))}
+        </div>
+
+        <p id="empty-state" class="empty-state muted" hidden>
+          Hakua vastaavia jaksoja ei löytynyt. Kokeile toista hakusanaa tai poista suodatin.
+        </p>
+      </>
+    ) : (
+      <p class="muted">Jaksoja ei voitu hakea tällä hetkellä. Tarkista feed-osoite.</p>
+    )}
+  </div>
+
+  <script is:inline>
+    (function () {
+      var grid = document.getElementById('episode-grid');
+      var input = document.getElementById('episode-search');
+      var chips = document.querySelectorAll('.topic-chip');
+      var visibleEl = document.getElementById('result-visible');
+      var emptyState = document.getElementById('empty-state');
+
+      if (!grid || !input) return;
+
+      var cards = grid.querySelectorAll('[data-episode-card]');
+      var state = { query: '', topic: '' };
+
+      function applyFilters() {
+        var q = state.query.trim().toLowerCase();
+        var topic = state.topic;
+        var visible = 0;
+
+        cards.forEach(function (card) {
+          var search = (card.getAttribute('data-search') || '').toLowerCase();
+          var topics = (card.getAttribute('data-topics') || '').split('|').filter(Boolean);
+          var qMatch = !q || search.indexOf(q) !== -1;
+          var topicMatch = !topic || topics.indexOf(topic) !== -1;
+          var show = qMatch && topicMatch;
+          card.hidden = !show;
+          if (show) visible += 1;
+        });
+
+        if (visibleEl) visibleEl.textContent = String(visible);
+        if (emptyState) emptyState.hidden = visible !== 0;
+      }
+
+      input.addEventListener('input', function (e) {
+        state.query = e.target.value || '';
+        applyFilters();
+      });
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          chips.forEach(function (c) { c.classList.remove('is-active'); });
+          chip.classList.add('is-active');
+          state.topic = chip.getAttribute('data-topic') || '';
+          applyFilters();
+        });
+      });
+    })();
+  </script>
 </BaseLayout>
 
 <style>
-  section {
-    margin: 1rem 0 3rem;
+  .page {
+    padding-top: 7rem;
+  }
+
+  .page-head {
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    text-transform: uppercase;
+    font-style: italic;
+    margin: 0 0 0.4rem;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-label {
+    display: block;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  #episode-search {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    padding: 0.85rem 1.1rem;
+    font: inherit;
+  }
+
+  #episode-search:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .topic-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .topic-chip {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+
+  .topic-chip:hover {
+    color: var(--accent);
+    border-color: rgba(255, 212, 0, 0.4);
+  }
+
+  .topic-chip.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #161616;
+  }
+
+  .result-count {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
   }
 
   .episode-grid {
-    margin-top: 1.2rem;
     display: grid;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .empty-state {
+    margin: 1.5rem 0;
+    padding: 1.4rem;
+    border-radius: var(--radius);
+    border: 1px dashed var(--border);
+    text-align: center;
   }
 </style>
