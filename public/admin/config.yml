@@ -1,0 +1,40 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+locale: fi
+site_url: https://www.raakaa.fi
+
+collections:
+  - name: "transcripts"
+    label: "Transcriptit"
+    folder: "src/content/transcripts"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    fields:
+      - { label: "Otsikko", name: "title", widget: "string" }
+      - { label: "Jakson GUID", name: "episodeGuid", widget: "string", required: false }
+      - { label: "Jakson slug", name: "episodeSlug", widget: "string", required: false }
+      - { label: "Julkaisupäivä", name: "publishDate", widget: "datetime", required: false }
+      - { label: "Tiivistelmä", name: "excerpt", widget: "text", required: false }
+      - { label: "Transcript", name: "body", widget: "markdown" }
+
+  - name: "pdf_transcripts"
+    label: "PDF-litteroinnit"
+    folder: "src/content/pdf-transcripts"
+    create: true
+    slug: "{{slug}}"
+    extension: "yml"
+    format: "yml"
+    fields:
+      - { label: "Otsikko", name: "title", widget: "string" }
+      - { label: "Jakson GUID", name: "episodeGuid", widget: "string", required: false }
+      - { label: "Jakson slug", name: "episodeSlug", widget: "string", required: false }
+      - { label: "Julkaisupäivä", name: "publishDate", widget: "datetime", required: false }
+      - { label: "Tiivistelmä", name: "excerpt", widget: "text", required: false }
+      - { label: "PDF-tiedosto", name: "pdfUrl", widget: "file", media_library: { config: { multiple: false } } }

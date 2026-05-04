@@ -1,0 +1,97 @@
+---
+import { formatFinnishDate, type Episode } from '../lib/rss';
+
+type Props = {
+  episode: Episode;
+};
+
+const { episode } = Astro.props;
+---
+
+<article class="episode-card glass">
+  {
+    episode.imageUrl && (
+      <div class="cover">
+        <img src={episode.imageUrl} alt={episode.title} loading="lazy" />
+      </div>
+    )
+  }
+  <p class="meta">{formatFinnishDate(episode.publishedAt)}</p>
+  <h3>{episode.title}</h3>
+  <p class="muted" set:html={episode.description}></p>
+  <div class="actions">
+    <a class="btn" href={`/jaksot/${episode.slug}`}>Avaa jakso</a>
+    <button
+      class="btn secondary"
+      type="button"
+      data-play-episode
+      data-episode-title={episode.title}
+      data-episode-audio={episode.audioUrl}
+    >
+      Kuuntele
+    </button>
+  </div>
+</article>
+
+<style>
+  .episode-card {
+    padding: 1.1rem;
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .episode-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 212, 0, 0.34);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.38);
+  }
+
+  .cover {
+    overflow: hidden;
+    border-radius: 12px;
+    margin-bottom: 0.8rem;
+    border: 1px solid var(--border);
+    background: #0b0b0b;
+  }
+
+  img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    transition: transform 220ms ease, filter 220ms ease;
+    filter: grayscale(0.15);
+  }
+
+  .episode-card:hover img {
+    transform: scale(1.04);
+    filter: grayscale(0);
+  }
+
+  .meta {
+    margin: 0 0 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  h3 {
+    margin: 0 0 0.6rem;
+    font-size: 1.2rem;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .actions {
+    margin-top: 0.9rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .secondary {
+    background: #222;
+    color: #fff;
+    border: 1px solid var(--border);
+  }
+</style>

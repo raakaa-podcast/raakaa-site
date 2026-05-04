@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Netlify Forms – yhteydenotto</title>
+    <!--
+      Tämä tiedosto rekisteröi lomakkeen Netlify Forms -palveluun.
+      Netlify parsii staattisen HTML:n deploy-vaiheessa; Astro SSR -sivulla
+      oleva lomake ei aina näy skannauksessa. Kenttien name-arvojen on vastattava
+      etusivun lomaketta (ks. docs.netlify.com/forms/setup).
+    -->
+  </head>
+  <body>
+    <form name="yhteydenotto" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/kiitos">
+      <input type="hidden" name="form-name" value="yhteydenotto" />
+      <p class="honeypot-field">
+        <label>Älä täytä tätä kenttää: <input name="bot-field" /></label>
+      </p>
+      <p>
+        <label>Nimi <input type="text" name="nimi" /></label>
+      </p>
+      <p>
+        <label>Sähköposti <input type="email" name="sahkoposti" /></label>
+      </p>
+      <p>
+        <label>Viesti <textarea name="viesti" rows="3"></textarea></label>
+      </p>
+      <p><button type="submit">Lähetä</button></p>
+    </form>
+    <style>
+      .honeypot-field {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+    </style>
+  </body>
+</html>

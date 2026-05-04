@@ -1,0 +1,158 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEpisodesFromRSS, formatFinnishDate, getRssEmbedUrl } from '../../lib/rss';
+import { getPdfTranscriptForEpisode, getTranscriptForEpisode } from '../../lib/transcripts';
+
+const episodes = await getEpisodesFromRSS();
+const { slug = '' } = Astro.params;
+const episode = episodes.find((item) => item.slug === slug);
+
+if (!episode) {
+  return Astro.redirect('/jaksot');
+}
+
+const transcript = await getTranscriptForEpisode(episode);
+const { Content } = transcript ? await transcript.render() : { Content: null };
+const pdfTranscript = await getPdfTranscriptForEpisode(episode);
+const embedUrl = getRssEmbedUrl(episode.link);
+const episodeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'PodcastEpisode',
+  name: episode.title,
+  url: `https://www.raakaa.fi/jaksot/${episode.slug}`,
+  datePublished: episode.publishedAt || undefined,
+  associatedMedia: {
+    '@type': 'MediaObject',
+    contentUrl: episode.audioUrl,
+    encodingFormat: 'audio/mpeg',
+  },
+  partOfSeries: {
+    '@type': 'PodcastSeries',
+    name: 'RAAKAA Podcast',
+    url: 'https://www.raakaa.fi',
+  },
+  description: episode.description.replace(/<[^>]+>/g, ' ').trim().slice(0, 300),
+};
+---
+
+<BaseLayout
+  title={`${episode.title} | RAAKAA Podcast`}
+  description={episode.description.replace(/<[^>]+>/g, '').slice(0, 160)}
+  structuredData={episodeSchema}
+>
+  <article class="episode-detail glass">
+    <p class="muted">{formatFinnishDate(episode.publishedAt)}</p>
+    <h1>{episode.title}</h1>
+
+    {
+      episode.imageUrl && (
+        <img src={episode.imageUrl} alt={episode.title} loading="lazy" />
+      )
+    }
+
+    <p class="description" set:html={episode.description}></p>
+
+    <button
+      class="btn"
+      type="button"
+      data-play-episode
+      data-episode-title={episode.title}
+      data-episode-audio={episode.audioUrl}
+    >
+      Kuuntele tässä
+    </button>
+  </article>
+
+  <section class="transcript glass">
+    <h2 class="section-title">Jakson transcripti</h2>
+    {
+      Content ? (
+        <Content />
+      ) : (
+        <p class="muted">Tähän jaksoon ei ole vielä julkaistu transcriptia.</p>
+      )
+    }
+  </section>
+
+  <section class="transcript glass">
+    <h2 class="section-title">PDF-litterointi</h2>
+    {
+      pdfTranscript ? (
+        <p>
+          <a class="btn" href={pdfTranscript.data.pdfUrl} target="_blank" rel="noreferrer">Avaa litterointi (PDF)</a>
+        </p>
+      ) : (
+        <p class="muted">Tähän jaksoon ei ole vielä lisätty PDF-litterointia.</p>
+      )
+    }
+  </section>
+
+  <section class="embed glass">
+    <h2 class="section-title">RSS.com upotus</h2>
+    {
+      embedUrl ? (
+        <iframe
+          src={embedUrl}
+          title={`RSS.com upotus: ${episode.title}`}
+          width="100%"
+          height="220"
+          loading="lazy"
+          allow="autoplay"
+        ></iframe>
+      ) : (
+        <p class="muted">Upotetta ei voitu muodostaa tästä jaksosta. Tarkista että jakson linkki tulee RSS.com-feedistä.</p>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .episode-detail {
+    padding: clamp(1rem, 2.5vw, 2rem);
+    margin-bottom: 2rem;
+  }
+
+  .description {
+    color: var(--muted);
+  }
+
+  .description :global(img),
+  .description :global(video),
+  .description :global(iframe) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .description :global(pre) {
+    overflow-x: auto;
+  }
+
+  h1 {
+    margin-top: 0.2rem;
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+  }
+
+  img {
+    width: min(100%, 680px);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    margin: 1rem 0;
+  }
+
+  .transcript {
+    margin-bottom: 3rem;
+    padding: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  .embed {
+    margin-bottom: 3rem;
+    padding: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  iframe {
+    border: 0;
+    border-radius: 10px;
+    background: #0e0e0e;
+    margin-top: 0.4rem;
+  }
+</style>

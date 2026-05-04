@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EpisodeCard from '../../components/EpisodeCard.astro';
+import { getEpisodesFromRSS } from '../../lib/rss';
+
+const episodes = await getEpisodesFromRSS();
+---
+
+<BaseLayout title="Jaksot | RAAKAA Podcast" description="Selaa kaikki RAAKAA Podcastin jaksot.">
+  <section>
+    <h1 class="section-title">Kaikki jaksot</h1>
+    <p class="muted">Uusimmat keskustelut suoraan RSS.com-syötteestä.</p>
+
+    {
+      episodes.length > 0 ? (
+        <div class="episode-grid">
+          {episodes.map((episode) => <EpisodeCard episode={episode} />)}
+        </div>
+      ) : (
+        <p class="muted">Jaksoja ei voitu hakea tällä hetkellä. Tarkista feed-osoite.</p>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  section {
+    margin: 1rem 0 3rem;
+  }
+
+  .episode-grid {
+    margin-top: 1.2rem;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+</style>

@@ -1,0 +1,93 @@
+<div id="sticky-player" class="sticky-player" aria-live="polite">
+  <div class="player-inner glass">
+    <div class="track">
+      <p class="track-label">Nyt soi</p>
+      <p id="track-title" class="track-title">Valitse jakso kuunneltavaksi</p>
+    </div>
+
+    <div class="controls">
+      <button id="toggle-play" class="play-btn" type="button" aria-label="Toista tai pysäytä">
+        ▶
+      </button>
+      <span id="time-current" class="time">00:00</span>
+      <input id="seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Siirry kohdassa" />
+      <span id="time-duration" class="time">00:00</span>
+    </div>
+
+    <audio id="audio-element" preload="none"></audio>
+  </div>
+</div>
+
+<script>
+  const audio = document.getElementById('audio-element');
+  const trackTitle = document.getElementById('track-title');
+  const togglePlay = document.getElementById('toggle-play');
+  const seek = document.getElementById('seek');
+  const timeCurrent = document.getElementById('time-current');
+  const timeDuration = document.getElementById('time-duration');
+
+  if (audio && trackTitle && togglePlay && seek && timeCurrent && timeDuration) {
+    const formatTime = (seconds) => {
+      if (!Number.isFinite(seconds)) return '00:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    };
+
+    const setTrack = (title, src) => {
+      if (!src) return;
+      if (audio.src !== src) {
+        audio.src = src;
+        trackTitle.textContent = title;
+        seek.value = '0';
+        timeCurrent.textContent = '00:00';
+      }
+    };
+
+    document.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+
+      const button = target.closest('[data-play-episode]');
+      if (!(button instanceof HTMLElement)) return;
+
+      const title = button.dataset.episodeTitle || 'Tuntematon jakso';
+      const src = button.dataset.episodeAudio || '';
+      setTrack(title, src);
+
+      try {
+        await audio.play();
+        togglePlay.textContent = '❚❚';
+      } catch (err) {
+        console.error('Playback failed', err);
+      }
+    });
+
+    togglePlay.addEventListener('click', async () => {
+      if (!audio.src) return;
+      if (audio.paused) {
+        await audio.play();
+        togglePlay.textContent = '❚❚';
+      } else {
+        audio.pause();
+        togglePlay.textContent = '▶';
+      }
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const progress = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+      seek.value = String(progress);
+      timeCurrent.textContent = formatTime(audio.currentTime);
+      timeDuration.textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener('ended', () => {
+      togglePlay.textContent = '▶';
+    });
+
+    seek.addEventListener('input', () => {
+      if (!audio.duration) return;
+      audio.currentTime = (Number(seek.value) / 100) * audio.duration;
+    });
+  }
+</script>
