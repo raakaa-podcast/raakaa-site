@@ -85,7 +85,8 @@ const guestEntries = guests.map((g) => ({
   .guest-grid {
     display: grid;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
+    justify-content: start;
   }
 
   .guest-card {

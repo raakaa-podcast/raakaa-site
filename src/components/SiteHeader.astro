@@ -120,9 +120,11 @@ const navLinks: LinkDef[] = isHome
     position: fixed;
     top: 14px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateZ(0);
     width: min(1120px, 92vw);
     z-index: 70;
+    will-change: transform;
+    contain: layout paint;
   }
 
   .header-inner {

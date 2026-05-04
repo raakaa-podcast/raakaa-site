@@ -151,8 +151,8 @@ const structuredDataItems = Array.isArray(structuredData)
   .glass {
     border: 1px solid var(--border);
     background: var(--surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
   }
@@ -225,10 +225,12 @@ const structuredDataItems = Array.isArray(structuredData)
     position: fixed;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateZ(0);
     z-index: 40;
     padding: 10px 0 14px;
     width: min(1120px, 92vw);
+    will-change: transform;
+    contain: layout paint;
   }
 
   .player-inner {

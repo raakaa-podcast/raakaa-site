@@ -85,7 +85,7 @@ const personSchema = {
           kuin vastaus.
         </p>
         <blockquote>
-          "En perustanut podcastia siksi, että tietäisin paljon. Olen siinä siksi, että haluan tietää enemmän — ja
+          "En perustanut podcastia siksi, että tietäisin paljon. Olen tässä siksi, että haluan tietää enemmän — ja
           usein vieraat tietävät jotain, mitä en olisi osannut edes kysyä."
         </blockquote>
 
@@ -203,13 +203,15 @@ const personSchema = {
     border-radius: 14px;
     position: sticky;
     top: 7rem;
+    will-change: transform;
+    contain: layout paint;
   }
 
   .img-wrap img {
     width: 100%;
     display: block;
     filter: grayscale(1);
-    transform: scale(1.02);
+    transform: scale(1.02) translateZ(0);
     opacity: 0.85;
     transition:
       filter 900ms cubic-bezier(0.22, 1, 0.36, 1),

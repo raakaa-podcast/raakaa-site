@@ -84,11 +84,12 @@ const searchString = [
 
 <style>
   .ep {
-    padding: 1rem;
-    transition: border-color 180ms ease, transform 180ms ease;
+    padding: 0.85rem;
+    transition: border-color 180ms ease;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.5rem;
+    contain: layout paint;
   }
 
   .ep:hover {
@@ -146,7 +147,7 @@ const searchString = [
 
   .ep-title {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     line-height: 1.3;
   }
 
@@ -161,7 +162,7 @@ const searchString = [
   .guests {
     margin: 0;
     color: var(--muted);
-    font-size: 0.92rem;
+    font-size: 0.85rem;
   }
 
   .guests .label {
@@ -180,7 +181,8 @@ const searchString = [
   .desc {
     color: var(--muted);
     margin: 0;
-    line-height: 1.55;
+    line-height: 1.5;
+    font-size: 0.92rem;
   }
 
   .topics {
