@@ -78,9 +78,22 @@ try {
 const episodesFromRss = await getEpisodesFromRSS();
 const rssBySlug = new Map(episodesFromRss.map((ep) => [ep.slug, ep]));
 
-const metaRows = Array.isArray(episodeMetaJson) ? episodeMetaJson : [];
-const guestRows = Array.isArray(guestsJson) ? guestsJson : [];
-const pdfRows = Array.isArray(litteroinnitJson) ? litteroinnitJson : [];
+const metaSource = episodeMetaJson as { episodes?: unknown[] } | unknown[];
+const metaRows = Array.isArray(metaSource)
+  ? metaSource
+  : Array.isArray(metaSource?.episodes)
+    ? metaSource.episodes
+    : [];
+const guestsSource = guestsJson as { guests?: unknown[] } | unknown[];
+const guestRows = Array.isArray(guestsSource) ? guestsSource : Array.isArray(guestsSource?.guests) ? guestsSource.guests : [];
+const pdfSource = litteroinnitJson as { items?: unknown[]; pdfs?: unknown[] } | unknown[];
+const pdfRows = Array.isArray(pdfSource)
+  ? pdfSource
+  : Array.isArray(pdfSource?.items)
+    ? pdfSource.items
+    : Array.isArray(pdfSource?.pdfs)
+      ? pdfSource.pdfs
+      : [];
 const guestBySlug = new Map(guestRows.map((g) => [g.slug, g]));
 const pdfBySlug = new Map(pdfRows.map((p) => [p.episodeSlug, p]));
 

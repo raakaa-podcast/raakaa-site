@@ -53,90 +53,35 @@ collections:
           - label: "Episodes"
             name: "episodes"
             widget: "list"
-            summary: "{{fields.slug}}"
+            summary: "{{fields.episodeSlug}}"
             fields:
-              - label: "Title"
-                name: "title"
-                widget: "string"
-                required: false
               - label: "Slug"
-                name: "slug"
+                name: "episodeSlug"
                 widget: "string"
+                required: true
                 pattern: ['^[a-z0-9-]+$', "Use lowercase letters, numbers, and hyphens."]
-              - label: "Publish date"
-                name: "publishDate"
-                widget: "datetime"
-                required: false
-                date_format: "YYYY-MM-DD"
-                time_format: false
-              - label: "Episode number"
-                name: "episodeNumber"
-                widget: "number"
-                required: false
-                value_type: "int"
-                min: 1
               - label: "Short description / summary"
-                name: "description"
+                name: "summary"
                 widget: "text"
-                required: false
-              - label: "Guest name"
-                name: "guestName"
-                widget: "string"
-                required: false
-              - label: "Guest Title / Role"
-                name: "guestRole"
-                widget: "string"
-                required: false
-              - label: "Guest bio"
-                name: "guestBio"
-                widget: "text"
-                required: false
-              - label: "Guest Photo URL"
-                name: "guestPhotoUrl"
-                widget: "string"
                 required: false
               - label: "YouTube URL"
                 name: "youtubeUrl"
                 widget: "string"
                 required: false
                 hint: "Accepts any YouTube URL format — youtu.be, watch?v=, or /embed/"
-              - label: "Podcast Audio URL"
-                name: "podcastAudioUrl"
-                widget: "string"
-                required: false
-                hint: "Spotify, RSS, or direct audio link"
-              - label: "Transcript"
-                name: "transcript"
-                widget: "text"
-                required: false
-                hint: "Full episode transcript. Leave blank if stored as a separate file."
-              - label: "Transcript File Path"
-                name: "transcriptFile"
-                widget: "string"
-                required: false
-                hint: "Path to transcript file if not stored inline, e.g. src/data/transcripts/slug.txt"
               - label: "Tags"
-                name: "tags"
+                name: "topics"
                 widget: "list"
                 required: false
                 field:
                   label: "Tag"
-                  name: "tag"
+                  name: "topic"
                   widget: "string"
-              - label: "OG Image URL"
-                name: "ogImageUrl"
-                widget: "string"
-                required: false
-              - label: "episodeSlug (live field)"
-                name: "episodeSlug"
-                widget: "string"
-                required: false
-                hint: "Existing live field consumed by /jaksot pages."
-              - label: "episodeGuid (live field)"
+              - label: "Episode GUID (optional)"
                 name: "episodeGuid"
                 widget: "string"
                 required: false
-              - label: "guests (live field)"
+              - label: "Guest slugs"
                 name: "guests"
                 widget: "list"
                 required: false
@@ -144,15 +89,69 @@ collections:
                   label: "Guest slug"
                   name: "guestSlug"
                   widget: "string"
-              - label: "topics (live field)"
-                name: "topics"
+
+  - name: "supporting_data"
+    label: "Supporting Data"
+    files:
+      - label: "Guests"
+        name: "guests"
+        file: "src/data/guests.json"
+        format: "json"
+        fields:
+          - label: "Guests"
+            name: "guests"
+            widget: "list"
+            summary: "{{fields.slug}}"
+            fields:
+              - { label: "Slug", name: "slug", widget: "string", required: true }
+              - { label: "Name", name: "name", widget: "string", required: true }
+              - { label: "Guest Title / Role", name: "role", widget: "string", required: false }
+              - { label: "Guest Bio", name: "bio", widget: "text", required: false }
+              - { label: "Guest Photo URL", name: "image", widget: "string", required: false }
+              - label: "Links"
+                name: "links"
                 widget: "list"
                 required: false
-                field:
-                  label: "Topic"
-                  name: "topic"
-                  widget: "string"
-              - label: "summary (live field)"
-                name: "summary"
-                widget: "text"
+                fields:
+                  - { label: "Label", name: "label", widget: "string" }
+                  - { label: "URL", name: "url", widget: "string" }
+      - label: "PDF Transcripts"
+        name: "pdf_transcripts"
+        file: "src/data/litteroinnit.json"
+        format: "json"
+        fields:
+          - label: "Items"
+            name: "items"
+            widget: "list"
+            summary: "{{fields.episodeSlug}}"
+            fields:
+              - { label: "Title", name: "title", widget: "string", required: true }
+              - { label: "Episode slug", name: "episodeSlug", widget: "string", required: false }
+              - label: "Publish date"
+                name: "publishDate"
+                widget: "datetime"
                 required: false
+                date_format: "YYYY-MM-DD"
+                time_format: false
+              - { label: "Excerpt", name: "excerpt", widget: "text", required: false }
+              - { label: "PDF URL", name: "pdfUrl", widget: "string", required: true }
+
+  - name: "transcripts"
+    label: "Transcripts"
+    folder: "src/content/transcripts"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Episode GUID", name: "episodeGuid", widget: "string", required: false }
+      - { label: "Episode slug", name: "episodeSlug", widget: "string", required: false }
+      - label: "Publish date"
+        name: "publishDate"
+        widget: "datetime"
+        required: false
+        date_format: "YYYY-MM-DD"
+        time_format: false
+      - { label: "Excerpt", name: "excerpt", widget: "text", required: false }
+      - { label: "Transcript", name: "body", widget: "markdown" }

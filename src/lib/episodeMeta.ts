@@ -22,8 +22,10 @@ export type Guest = {
   links?: GuestLink[];
 };
 
-const meta: EpisodeMeta[] = Array.isArray(episodeMetaJson) ? (episodeMetaJson as EpisodeMeta[]) : [];
-const guests: Guest[] = Array.isArray(guestsJson) ? (guestsJson as Guest[]) : [];
+const metaSource = episodeMetaJson as EpisodeMeta[] | { episodes?: EpisodeMeta[] };
+const guestsSource = guestsJson as Guest[] | { guests?: Guest[] };
+const meta: EpisodeMeta[] = Array.isArray(metaSource) ? metaSource : Array.isArray(metaSource?.episodes) ? metaSource.episodes : [];
+const guests: Guest[] = Array.isArray(guestsSource) ? guestsSource : Array.isArray(guestsSource?.guests) ? guestsSource.guests : [];
 
 export function getEpisodeMeta(episode: Pick<Episode, 'slug' | 'guid'>): EpisodeMeta {
   return (

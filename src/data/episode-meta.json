@@ -1,10 +1,12 @@
-[
-  {
-    "episodeSlug": "test",
-    "episodeGuid": "",
-    "guests": ["esimerkki-vieras"],
-    "topics": ["esimerkki", "testi"],
-    "summary": "Tämä on placeholder-jakso, kunnes ensimmäiset jaksot saadaan julkaistua.",
-    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-  }
-]
+{
+  "episodes": [
+    {
+      "episodeSlug": "test",
+      "episodeGuid": "",
+      "guests": ["esimerkki-vieras"],
+      "topics": ["esimerkki", "testi"],
+      "summary": "Tämä on placeholder-jakso, kunnes ensimmäiset jaksot saadaan julkaistua.",
+      "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    }
+  ]
+}

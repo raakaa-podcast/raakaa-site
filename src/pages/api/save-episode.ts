@@ -28,6 +28,10 @@ type PdfItem = {
   pdfUrl: string;
 };
 
+type EpisodeMetaFile = EpisodeMeta[] | { episodes?: EpisodeMeta[] };
+type GuestsFile = Guest[] | { guests?: Guest[] };
+type PdfFile = PdfItem[] | { items?: PdfItem[]; pdfs?: PdfItem[] };
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -98,9 +102,26 @@ export const POST: APIRoute = async ({ request }) => {
     const guestsPath = path.join(repoRoot, 'src', 'data', 'guests.json');
     const pdfPath = path.join(repoRoot, 'src', 'data', 'litteroinnit.json');
 
-    const metaRows = await readJson<EpisodeMeta[]>(metaPath, []);
-    const guests = await readJson<Guest[]>(guestsPath, []);
-    const pdfRows = await readJson<PdfItem[]>(pdfPath, []);
+    const metaFile = await readJson<EpisodeMetaFile>(metaPath, { episodes: [] });
+    const metaRows = Array.isArray(metaFile)
+      ? metaFile
+      : Array.isArray(metaFile.episodes)
+        ? metaFile.episodes
+        : [];
+    const guestsFile = await readJson<GuestsFile>(guestsPath, { guests: [] });
+    const guests = Array.isArray(guestsFile)
+      ? guestsFile
+      : Array.isArray(guestsFile.guests)
+        ? guestsFile.guests
+        : [];
+    const pdfFile = await readJson<PdfFile>(pdfPath, { items: [] });
+    const pdfRows = Array.isArray(pdfFile)
+      ? pdfFile
+      : Array.isArray(pdfFile.items)
+        ? pdfFile.items
+        : Array.isArray(pdfFile.pdfs)
+          ? pdfFile.pdfs
+          : [];
 
     const duplicate = mode !== 'delete' && metaRows.some((m) => m.episodeSlug === slug && m.episodeSlug !== previousSlug);
     if (duplicate) {
@@ -110,8 +131,8 @@ export const POST: APIRoute = async ({ request }) => {
     if (mode === 'delete') {
       const nextMeta = metaRows.filter((m) => m.episodeSlug !== previousSlug);
       const nextPdf = pdfRows.filter((p) => p.episodeSlug !== previousSlug);
-      await writeJson(metaPath, nextMeta);
-      await writeJson(pdfPath, nextPdf);
+      await writeJson(metaPath, { episodes: nextMeta });
+      await writeJson(pdfPath, { items: nextPdf });
       return new Response(JSON.stringify({ ok: true }));
     }
 
@@ -164,9 +185,9 @@ export const POST: APIRoute = async ({ request }) => {
       pdfRows.splice(pdfIndex, 1);
     }
 
-    await writeJson(metaPath, metaRows);
-    await writeJson(guestsPath, guests);
-    await writeJson(pdfPath, pdfRows);
+    await writeJson(metaPath, { episodes: metaRows });
+    await writeJson(guestsPath, { guests });
+    await writeJson(pdfPath, { items: pdfRows });
 
     return new Response(JSON.stringify({ ok: true }));
   } catch (error) {

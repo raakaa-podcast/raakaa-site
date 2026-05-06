@@ -15,8 +15,8 @@ function manifestRows(): PdfTranscriptData[] {
   if (Array.isArray(litteroinnitJson)) {
     return litteroinnitJson as PdfTranscriptData[];
   }
-  const obj = litteroinnitJson as { pdfs?: PdfTranscriptData[] };
-  return obj.pdfs ?? [];
+  const obj = litteroinnitJson as { pdfs?: PdfTranscriptData[]; items?: PdfTranscriptData[] };
+  return obj.items ?? obj.pdfs ?? [];
 }
 
 function keyFor(data: PdfTranscriptData): string {
