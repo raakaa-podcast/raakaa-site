@@ -1,6 +1,6 @@
 ---
 title: Esimerkkitranscripti
-episodeSlug: esimerkki-jakso
+episodeSlug: test
 publishDate: 2026-05-04
 excerpt: Taman tiedoston voit korvata oikealla transcripilla Decap CMS:sta.
 ---
