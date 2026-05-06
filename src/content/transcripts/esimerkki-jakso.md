@@ -1,10 +1,23 @@
 ---
-title: Esimerkkitranscripti
+title: Esimerkkilitterointi
 episodeSlug: test
-publishDate: 2026-05-04
-excerpt: Taman tiedoston voit korvata oikealla transcripilla Decap CMS:sta.
+publishDate: 2026-05-06
+excerpt: ""
 ---
+Jakson nimi: Testijakso
 
-# Esimerkkitranscripti
+Julkaisupäivä: 6.5.2026
 
-Tama on mallitranscripti. Voit lisata ja muokata transcriptit selaimessa reitilla `/admin`.
+Vieras: Esimerkkivieras
+
+
+
+**LITTEROINTI ALKAA**
+
+**Markus:** Tervetuloa lukemaan esimerkkilitterointia.
+
+**Esimerkkivieras:** Kiitos, hienoa päästä mukaan.
+
+**Markus:** Kiva että olet paikalla.
+
+**LITTEROINTI PÄÄTTYY**
