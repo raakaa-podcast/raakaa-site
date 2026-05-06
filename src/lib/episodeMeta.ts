@@ -8,6 +8,7 @@ export type EpisodeMeta = {
   guests?: string[];
   topics?: string[];
   summary?: string;
+  youtubeUrl?: string;
 };
 
 export type GuestLink = { label: string; url: string };

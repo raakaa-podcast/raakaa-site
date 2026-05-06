@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeButtons from '../../components/EpisodeButtons.astro';
-import { formatFinnishDate, getEpisodesFromRSS, getRssEmbedUrl, type Episode } from '../../lib/rss';
+import YoutubeEmbed from '../../components/YoutubeEmbed.astro';
+import { formatFinnishDate, getEpisodesFromRSS, type Episode } from '../../lib/rss';
 import { getPdfTranscriptForEpisode, getTranscriptForEpisode } from '../../lib/transcripts';
 import {
   durationToISO,
@@ -24,8 +25,6 @@ const { episode } = Astro.props;
 const transcript = await getTranscriptForEpisode(episode);
 const { Content } = transcript ? await transcript.render() : { Content: null };
 const pdfTranscript = await getPdfTranscriptForEpisode(episode);
-const embedUrl = getRssEmbedUrl(episode.link);
-
 const cleanDescription = episode.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const meta = getEpisodeMeta(episode);
 const duration = formatDuration(episode.duration);
@@ -143,22 +142,10 @@ if (guests.length > 0) {
         />
       </div>
 
+      <YoutubeEmbed youtubeUrl={meta.youtubeUrl} />
+
       <div class="description" set:html={episode.description}></div>
     </article>
-
-    {embedUrl && (
-      <section class="embed glass" aria-labelledby="embed-title">
-        <h2 id="embed-title" class="section-title">Kuuntele tästä</h2>
-        <iframe
-          src={embedUrl}
-          title={`RSS.com upotus: ${episode.title}`}
-          width="100%"
-          height="220"
-          loading="lazy"
-          allow="autoplay"
-        ></iframe>
-      </section>
-    )}
 
     {Content && (
       <section class="transcript glass" aria-labelledby="transcript-title">
@@ -305,8 +292,7 @@ if (guests.length > 0) {
     overflow-x: auto;
   }
 
-  .transcript,
-  .embed {
+  .transcript {
     margin-bottom: 1.6rem;
     padding: clamp(1.2rem, 3vw, 2rem);
   }

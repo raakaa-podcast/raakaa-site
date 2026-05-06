@@ -1,0 +1,121 @@
+---
+// Local fallback admin — Decap CMS is the primary content interface for the live site (/admin).
+// Keep field schemas in sync manually if episode-meta.json structure changes.
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EpisodeAdminPanel from '../../components/admin/EpisodeAdminPanel.astro';
+import episodeMetaJson from '../../data/episode-meta.json';
+import guestsJson from '../../data/guests.json';
+import litteroinnitJson from '../../data/litteroinnit.json';
+import { getEpisodesFromRSS } from '../../lib/rss';
+
+if (!import.meta.env.DEV) {
+  Astro.response.status = 404;
+}
+
+/*
+AUDIT SUMMARY (before building admin):
+- src/data/episode-meta.json fields in use: episodeSlug, episodeGuid, guests[], topics[], summary, youtubeUrl (plus additive optional fields are safe).
+- src/data/guests.json stores guest profiles (slug, name, role, bio, image, links[]), referenced from episode-meta guests[] via resolveGuestNames().
+- src/data/litteroinnit.json stores PDF transcript links used by episode/list pages through getPdfTranscriptForEpisode()/getAllPdfTranscriptItems().
+- /jaksot/[slug] consumes RSS Episode data (title, slug, description, date, duration, image, audioUrl) + episode-meta (topics, guests, summary, youtubeUrl) + transcript collection + pdf transcript.
+- Transcripts are content collection markdown files under src/content/transcripts/*.md with frontmatter episodeSlug/episodeGuid.
+- Content collections also include src/content/pdf-transcripts/*.yml for PDF transcript data.
+*/
+
+type Row = {
+  slug: string;
+  title: string;
+  summary: string;
+  guestName: string;
+  guestRole: string;
+  guestBio: string;
+  guestImage: string;
+  youtubeUrl: string;
+  transcriptText: string;
+  transcriptPath: string;
+  transcriptFormat: string;
+  tags: string;
+  pdfUrl: string;
+};
+
+function parseTranscriptMarkdown(markdown: string): { body: string; frontmatter: Record<string, string> } {
+  const match = markdown.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+  if (!match) return { body: markdown.trim(), frontmatter: {} };
+  const frontmatter: Record<string, string> = {};
+  for (const line of match[1].split('\n')) {
+    const m = line.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
+    if (!m) continue;
+    frontmatter[m[1]] = m[2]?.trim() ?? '';
+  }
+  const body = markdown.slice(match[0].length).trim();
+  return { body, frontmatter };
+}
+
+const transcriptDir = new URL('../../content/transcripts/', import.meta.url);
+const transcriptBySlug = new Map<string, { path: string; text: string; format: string }>();
+
+try {
+  const files = await fs.readdir(transcriptDir, { withFileTypes: true });
+  for (const file of files) {
+    if (!file.isFile() || !file.name.endsWith('.md')) continue;
+    const full = new URL(`../../content/transcripts/${file.name}`, import.meta.url);
+    const raw = await fs.readFile(full, 'utf8');
+    const parsed = parseTranscriptMarkdown(raw);
+    const slug = parsed.frontmatter.episodeSlug || file.name.replace(/\.md$/i, '');
+    if (!slug) continue;
+    transcriptBySlug.set(slug, {
+      path: path.posix.join('src/content/transcripts', file.name),
+      text: parsed.body,
+      format: 'markdown file',
+    });
+  }
+} catch {
+  // Keep empty map if transcript folder is missing or unreadable.
+}
+
+const episodesFromRss = await getEpisodesFromRSS();
+const rssBySlug = new Map(episodesFromRss.map((ep) => [ep.slug, ep]));
+
+const metaRows = Array.isArray(episodeMetaJson) ? episodeMetaJson : [];
+const guestRows = Array.isArray(guestsJson) ? guestsJson : [];
+const pdfRows = Array.isArray(litteroinnitJson) ? litteroinnitJson : [];
+const guestBySlug = new Map(guestRows.map((g) => [g.slug, g]));
+const pdfBySlug = new Map(pdfRows.map((p) => [p.episodeSlug, p]));
+
+const episodes: Row[] = episodesFromRss.map((rssEpisode) => {
+  const slug = rssEpisode.slug;
+  const rss = rssBySlug.get(slug);
+  const meta = metaRows.find((m) => m.episodeSlug === slug) ?? {};
+  const guestSlug = (meta.guests && meta.guests[0]) || '';
+  const guest = guestBySlug.get(guestSlug) ?? {};
+  const transcript = transcriptBySlug.get(slug);
+  const pdf = pdfBySlug.get(slug);
+  const title = rss?.title || meta.title || slug;
+  const summary = meta.summary || '';
+  return {
+    slug,
+    title,
+    summary,
+    guestName: guest.name || '',
+    guestRole: guest.role || '',
+    guestBio: guest.bio || '',
+    guestImage: guest.image || '',
+    youtubeUrl: meta.youtubeUrl || '',
+    transcriptText: transcript?.text || '',
+    transcriptPath: transcript?.path || `src/content/transcripts/${slug}.md`,
+    transcriptFormat: transcript?.format || 'markdown file',
+    tags: Array.isArray(meta.topics) ? meta.topics.join(', ') : '',
+    pdfUrl: pdf?.pdfUrl || '',
+  };
+});
+---
+
+{
+  import.meta.env.DEV && (
+    <BaseLayout title="Admin | RAAKAA Podcast" noindex={true}>
+      <EpisodeAdminPanel episodes={episodes} />
+    </BaseLayout>
+  )
+}

@@ -1,0 +1,79 @@
+---
+type Props = {
+  youtubeUrl?: string;
+};
+
+const { youtubeUrl } = Astro.props;
+
+function getYoutubeId(url?: string): string | null {
+  if (!url) return null;
+  const value = url.trim();
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+
+    if (host === 'youtu.be') {
+      const id = parsed.pathname.split('/').filter(Boolean)[0];
+      return id || null;
+    }
+
+    if (host.includes('youtube.com')) {
+      if (parsed.pathname === '/watch') {
+        const id = parsed.searchParams.get('v');
+        return id || null;
+      }
+
+      if (parsed.pathname.startsWith('/embed/')) {
+        const id = parsed.pathname.split('/').filter(Boolean)[1];
+        return id || null;
+      }
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+const videoId = getYoutubeId(youtubeUrl);
+if (!videoId) return null;
+---
+
+<section class="youtube" aria-label="Jakso YouTubessa">
+  <div class="youtube-inner">
+    <iframe
+      src={`https://www.youtube.com/embed/${videoId}`}
+      title="YouTube-video upotus"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+    ></iframe>
+  </div>
+</section>
+
+<style>
+  .youtube {
+    margin: 0 0 1.4rem;
+    width: 100%;
+  }
+
+  .youtube-inner {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #0e0e0e;
+  }
+
+  .youtube-inner iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>
