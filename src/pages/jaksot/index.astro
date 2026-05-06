@@ -2,18 +2,9 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeCard from '../../components/EpisodeCard.astro';
 import { getEpisodesFromRSS } from '../../lib/rss';
-import { getAllPdfTranscriptItems } from '../../lib/litteroinnit';
 import { getEpisodeMeta } from '../../lib/episodeMeta';
 
 const episodes = await getEpisodesFromRSS();
-const pdfs = await getAllPdfTranscriptItems();
-
-const pdfBySlug = new Map<string, string>();
-const pdfByGuid = new Map<string, string>();
-for (const item of pdfs) {
-  if (item.episodeSlug) pdfBySlug.set(item.episodeSlug, item.pdfUrl);
-  if (item.episodeGuid) pdfByGuid.set(item.episodeGuid, item.pdfUrl);
-}
 
 const allTopicsSet = new Set<string>();
 for (const ep of episodes) {
@@ -24,7 +15,7 @@ const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
 
 <BaseLayout
   title="Jaksot | RAAKAA Podcast"
-  description="Selaa kaikki RAAKAA Podcastin jaksot. Suodata aiheen perusteella tai etsi vieraan tai avainsanan mukaan – kuuntele tai avaa litterointi PDF-muodossa."
+  description="Selaa kaikki RAAKAA Podcastin jaksot. Suodata aiheen perusteella tai etsi vieraan tai avainsanan mukaan."
 >
   <div class="page max">
     <header class="page-head">
@@ -80,10 +71,6 @@ const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
           {episodes.map((episode) => (
             <EpisodeCard
               episode={episode}
-              pdfUrl={
-                pdfBySlug.get(episode.slug) ??
-                (episode.guid ? pdfByGuid.get(episode.guid) ?? null : null)
-              }
               headingLevel="h2"
             />
           ))}

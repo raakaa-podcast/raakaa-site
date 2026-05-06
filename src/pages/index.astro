@@ -3,20 +3,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import EpisodeCard from '../components/EpisodeCard.astro';
 import SocialIcons from '../components/SocialIcons.astro';
 import { getEpisodesFromRSS } from '../lib/rss';
-import { getAllPdfTranscriptItems } from '../lib/litteroinnit';
 
 const episodes = await getEpisodesFromRSS();
 const latestEpisodes = episodes.slice(0, 3);
-const allPdfs = await getAllPdfTranscriptItems();
-
-const pdfBySlug = new Map<string, string>();
-const pdfByGuid = new Map<string, string>();
-for (const item of allPdfs) {
-  if (item.episodeSlug) pdfBySlug.set(item.episodeSlug, item.pdfUrl);
-  if (item.episodeGuid) pdfByGuid.set(item.episodeGuid, item.pdfUrl);
-}
-const findPdfFor = (slug: string, guid?: string): string | null =>
-  pdfBySlug.get(slug) ?? (guid ? pdfByGuid.get(guid) ?? null : null);
 
 const faqItems = [
   {
@@ -32,7 +21,7 @@ const faqItems = [
   {
     question: 'Mistä löydän jaksojen litteroinnit?',
     answer:
-      'Litteroinnit löytyvät PDF-muodossa suoraan jaksokorteista – Avaa- ja Toista-nappien vierestä – kun litterointi on saatavilla. Litterointi löytyy myös yksittäisen jakson sivulta.',
+      'Litteroinnit löytyvät tekstimuodossa suoraan yksittäisen jakson sivulta, kun litterointi on lisätty jaksolle.',
   },
   {
     question: 'Voinko ehdottaa vierasta tai aihetta?',
@@ -131,10 +120,7 @@ const orgSchema = {
       </div>
       <div class={`episode-grid count-${latestEpisodes.length}`}>
         {latestEpisodes.map((episode) => (
-          <EpisodeCard
-            episode={episode}
-            pdfUrl={findPdfFor(episode.slug, episode.guid)}
-          />
+          <EpisodeCard episode={episode} />
         ))}
       </div>
     </section>
@@ -170,7 +156,7 @@ const orgSchema = {
         </li>
         <li>
           <strong>Saavutettavuus:</strong>
-          <span>PDF-litteroinnit kaikista jaksoista</span>
+          <span>Tekstilitteroinnit suoraan jaksosivuilla</span>
         </li>
         <li>
           <strong>Juontaja:</strong>

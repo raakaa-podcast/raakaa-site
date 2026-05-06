@@ -3,7 +3,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeCard from '../../components/EpisodeCard.astro';
 import { getEpisodesFromRSS } from '../../lib/rss';
 import { getAllGuests, getEpisodesForGuest, type Guest } from '../../lib/episodeMeta';
-import { getAllPdfTranscriptItems } from '../../lib/litteroinnit';
 
 export async function getStaticPaths() {
   const guests = getAllGuests();
@@ -18,14 +17,6 @@ const { guest } = Astro.props;
 
 const episodes = await getEpisodesFromRSS();
 const guestEpisodes = getEpisodesForGuest(guest.slug, episodes);
-
-const pdfs = await getAllPdfTranscriptItems();
-const pdfBySlug = new Map<string, string>();
-const pdfByGuid = new Map<string, string>();
-for (const item of pdfs) {
-  if (item.episodeSlug) pdfBySlug.set(item.episodeSlug, item.pdfUrl);
-  if (item.episodeGuid) pdfByGuid.set(item.episodeGuid, item.pdfUrl);
-}
 
 const personSchema = {
   '@context': 'https://schema.org',
@@ -93,10 +84,6 @@ const personSchema = {
           {guestEpisodes.map((episode) => (
             <EpisodeCard
               episode={episode}
-              pdfUrl={
-                pdfBySlug.get(episode.slug) ??
-                (episode.guid ? pdfByGuid.get(episode.guid) ?? null : null)
-              }
               headingLevel="h3"
             />
           ))}

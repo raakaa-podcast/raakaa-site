@@ -5,11 +5,10 @@ import { formatDuration, getEpisodeMeta, resolveGuestNames } from '../lib/episod
 
 type Props = {
   episode: Episode;
-  pdfUrl?: string | null;
   headingLevel?: 'h2' | 'h3';
 };
 
-const { episode, pdfUrl = null, headingLevel = 'h3' } = Astro.props;
+const { episode, headingLevel = 'h3' } = Astro.props;
 
 const meta = getEpisodeMeta(episode);
 const duration = formatDuration(episode.duration);
@@ -78,7 +77,6 @@ const searchString = [
     slug={episode.slug}
     title={episode.title}
     audioUrl={episode.audioUrl}
-    pdfUrl={pdfUrl}
   />
 </article>
 

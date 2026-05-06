@@ -7,7 +7,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeAdminPanel from '../../components/admin/EpisodeAdminPanel.astro';
 import episodeMetaJson from '../../data/episode-meta.json';
 import guestsJson from '../../data/guests.json';
-import litteroinnitJson from '../../data/litteroinnit.json';
 import { getEpisodesFromRSS } from '../../lib/rss';
 
 if (!import.meta.env.DEV) {
@@ -18,10 +17,8 @@ if (!import.meta.env.DEV) {
 AUDIT SUMMARY (before building admin):
 - src/data/episode-meta.json fields in use: episodeSlug, episodeGuid, guests[], topics[], summary, youtubeUrl (plus additive optional fields are safe).
 - src/data/guests.json stores guest profiles (slug, name, role, bio, image, links[]), referenced from episode-meta guests[] via resolveGuestNames().
-- src/data/litteroinnit.json stores PDF transcript links used by episode/list pages through getPdfTranscriptForEpisode()/getAllPdfTranscriptItems().
-- /jaksot/[slug] consumes RSS Episode data (title, slug, description, date, duration, image, audioUrl) + episode-meta (topics, guests, summary, youtubeUrl) + transcript collection + pdf transcript.
+- /jaksot/[slug] consumes RSS Episode data (title, slug, description, date, duration, image, audioUrl) + episode-meta (topics, guests, summary, youtubeUrl) + transcript collection.
 - Transcripts are content collection markdown files under src/content/transcripts/*.md with frontmatter episodeSlug/episodeGuid.
-- Content collections also include src/content/pdf-transcripts/*.yml for PDF transcript data.
 */
 
 type Row = {
@@ -37,7 +34,6 @@ type Row = {
   transcriptPath: string;
   transcriptFormat: string;
   tags: string;
-  pdfUrl: string;
 };
 
 function parseTranscriptMarkdown(markdown: string): { body: string; frontmatter: Record<string, string> } {
@@ -86,16 +82,7 @@ const metaRows = Array.isArray(metaSource)
     : [];
 const guestsSource = guestsJson as { guests?: unknown[] } | unknown[];
 const guestRows = Array.isArray(guestsSource) ? guestsSource : Array.isArray(guestsSource?.guests) ? guestsSource.guests : [];
-const pdfSource = litteroinnitJson as { items?: unknown[]; pdfs?: unknown[] } | unknown[];
-const pdfRows = Array.isArray(pdfSource)
-  ? pdfSource
-  : Array.isArray(pdfSource?.items)
-    ? pdfSource.items
-    : Array.isArray(pdfSource?.pdfs)
-      ? pdfSource.pdfs
-      : [];
 const guestBySlug = new Map(guestRows.map((g) => [g.slug, g]));
-const pdfBySlug = new Map(pdfRows.map((p) => [p.episodeSlug, p]));
 
 const episodes: Row[] = episodesFromRss.map((rssEpisode) => {
   const slug = rssEpisode.slug;
@@ -104,7 +91,6 @@ const episodes: Row[] = episodesFromRss.map((rssEpisode) => {
   const guestSlug = (meta.guests && meta.guests[0]) || '';
   const guest = guestBySlug.get(guestSlug) ?? {};
   const transcript = transcriptBySlug.get(slug);
-  const pdf = pdfBySlug.get(slug);
   const title = rss?.title || meta.title || slug;
   const summary = meta.summary || '';
   return {
@@ -120,7 +106,6 @@ const episodes: Row[] = episodesFromRss.map((rssEpisode) => {
     transcriptPath: transcript?.path || `src/content/transcripts/${slug}.md`,
     transcriptFormat: transcript?.format || 'markdown file',
     tags: Array.isArray(meta.topics) ? meta.topics.join(', ') : '',
-    pdfUrl: pdf?.pdfUrl || '',
   };
 });
 ---

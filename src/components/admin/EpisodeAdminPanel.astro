@@ -12,7 +12,6 @@ type AdminEpisode = {
   transcriptPath: string;
   transcriptFormat: string;
   tags: string;
-  pdfUrl: string;
 };
 
 type Props = {
@@ -65,17 +64,15 @@ const { episodes } = Astro.props;
         <label>YouTube URL<input name="youtubeUrl" type="url" /></label>
         <small>Accepted: youtu.be, watch?v=, /embed/.</small>
         <img id="yt-preview" class="yt-preview" alt="YouTube preview thumbnail" hidden />
-        <label>PDF transcript URL<input name="pdfUrl" type="text" /></label>
-        <small>Used by the Litterointi/PDF action button.</small>
       </fieldset>
 
       <fieldset>
-        <legend>Transcript</legend>
-        <p id="transcript-format" class="format-pill">Current format: unknown</p>
-        <label>Raw transcript text<textarea name="transcriptText" rows="10"></textarea></label>
-        <small>Saved to markdown file for this episode transcript.</small>
-        <label>Transcript file path<input name="transcriptPath" type="text" /></label>
-        <small>Kept under src/content/transcripts/*.md</small>
+        <legend>Litterointi</legend>
+        <p id="transcript-format" class="format-pill">Nykyinen muoto: tuntematon</p>
+        <label>Litteroinnin teksti<textarea name="transcriptText" rows="10"></textarea></label>
+        <small>Tallennetaan markdown-tiedostoon jakson litterointina.</small>
+        <label>Litterointitiedoston polku<input name="transcriptPath" type="text" /></label>
+        <small>Sijainti: src/content/transcripts/*.md</small>
       </fieldset>
 
       <fieldset>
@@ -157,7 +154,7 @@ const { episodes } = Astro.props;
       const field = form.elements.namedItem(key);
       if (field) field.value = value ?? '';
     });
-    formatEl.textContent = `Current format: ${row.transcriptFormat || 'none'}`;
+    formatEl.textContent = `Nykyinen muoto: ${row.transcriptFormat || 'ei asetettu'}`;
     updateYoutubePreview();
   }
 
@@ -173,9 +170,8 @@ const { episodes } = Astro.props;
       youtubeUrl: String(form.elements.namedItem('youtubeUrl').value || '').trim(),
       transcriptText: String(form.elements.namedItem('transcriptText').value || ''),
       transcriptPath: String(form.elements.namedItem('transcriptPath').value || '').trim(),
-      transcriptFormat: String(form.elements.namedItem('transcriptFormat')?.value || 'markdown file').trim(),
+      transcriptFormat: String(form.elements.namedItem('transcriptFormat')?.value || 'markdown-tiedosto').trim(),
       tags: String(form.elements.namedItem('tags').value || '').trim(),
-      pdfUrl: String(form.elements.namedItem('pdfUrl').value || '').trim(),
     };
   }
 
@@ -204,7 +200,7 @@ const { episodes } = Astro.props;
     });
     if (!transcriptRes.ok) {
       const body = await transcriptRes.json().catch(() => ({}));
-      throw new Error(body.error || 'Failed to save transcript file.');
+      throw new Error(body.error || 'Litterointitiedoston tallennus epaonnistui.');
     }
   }
 

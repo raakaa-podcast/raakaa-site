@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
       '',
     ];
 
-    const bodyText = transcriptText || '# Transcript\n\nAdd transcript text here.';
+    const bodyText = transcriptText || '# Litterointi\n\nLisaa litteroinnin teksti tahan.';
     const markdown = `${frontmatter.join('\n')}${bodyText}\n`;
 
     await fs.mkdir(path.dirname(absolutePath), { recursive: true });
@@ -84,7 +84,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({ ok: true, path: relativePath }));
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Transcript save failed';
+    const message = error instanceof Error ? error.message : 'Litteroinnin tallennus epaonnistui';
     return new Response(JSON.stringify({ error: message }), { status: 500 });
   }
 };

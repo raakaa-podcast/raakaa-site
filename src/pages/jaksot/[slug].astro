@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeButtons from '../../components/EpisodeButtons.astro';
 import YoutubeEmbed from '../../components/YoutubeEmbed.astro';
 import { formatFinnishDate, getEpisodesFromRSS, type Episode } from '../../lib/rss';
-import { getPdfTranscriptForEpisode, getTranscriptForEpisode } from '../../lib/transcripts';
+import { getTranscriptFallbackTextForEpisode, getTranscriptForEpisode } from '../../lib/transcripts';
 import {
   durationToISO,
   formatDuration,
@@ -24,7 +24,7 @@ const { episode } = Astro.props;
 
 const transcript = await getTranscriptForEpisode(episode);
 const { Content } = transcript ? await transcript.render() : { Content: null };
-const pdfTranscript = await getPdfTranscriptForEpisode(episode);
+const fallbackTranscriptText = !Content ? await getTranscriptFallbackTextForEpisode(episode) : null;
 const cleanDescription = episode.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const meta = getEpisodeMeta(episode);
 const duration = formatDuration(episode.duration);
@@ -137,7 +137,6 @@ if (guests.length > 0) {
           slug={episode.slug}
           title={episode.title}
           audioUrl={episode.audioUrl}
-          pdfUrl={pdfTranscript?.data.pdfUrl ?? null}
           size="default"
         />
       </div>
@@ -147,10 +146,10 @@ if (guests.length > 0) {
       <div class="description" set:html={episode.description}></div>
     </article>
 
-    {Content && (
+    {(Content || fallbackTranscriptText) && (
       <section class="transcript glass" aria-labelledby="transcript-title">
-        <h2 id="transcript-title" class="section-title">Jakson transkripti</h2>
-        <Content />
+        <h2 id="transcript-title" class="section-title">Jakson litterointi</h2>
+        {Content ? <Content /> : <div class="transcript-plain" set:html={fallbackTranscriptText?.replace(/\n/g, '<br />')}></div>}
       </section>
     )}
   </div>
@@ -295,6 +294,11 @@ if (guests.length > 0) {
   .transcript {
     margin-bottom: 1.6rem;
     padding: clamp(1.2rem, 3vw, 2rem);
+  }
+
+  .transcript-plain {
+    color: var(--muted);
+    line-height: 1.7;
   }
 
   iframe {

@@ -4,12 +4,10 @@
 # FIELD INVENTORY AUDIT (/jaksot data layer):
 # - src/data/episode-meta.json (array items): episodeSlug:string, episodeGuid:string, guests:string[], topics:string[], summary:string, youtubeUrl:string
 # - src/data/guests.json (array items): slug:string, name:string, role:string, bio:string, image:string, links:[{label:string,url:string}]
-# - src/data/litteroinnit.json (array items): title:string, episodeSlug:string, publishDate:string, excerpt:string, pdfUrl:string
 # - src/content/transcripts/*.md frontmatter: title:string, episodeGuid?:string, episodeSlug?:string, publishDate?:string, excerpt?:string + markdown body
 # - /jaksot/[slug] consumes RSS fields (title, slug, description, publishedAt, duration, audioUrl, imageUrl), plus:
 #   - episode-meta: guests[], topics[], summary, youtubeUrl
 #   - guests.json via guests[] indirection (guest names/links on page)
-#   - litteroinnit/pdfTranscripts for PDF URL
 #   - transcripts content collection for transcript body
 
 backend:
@@ -115,29 +113,8 @@ collections:
                 fields:
                   - { label: "Label", name: "label", widget: "string" }
                   - { label: "URL", name: "url", widget: "string" }
-      - label: "PDF Transcripts"
-        name: "pdf_transcripts"
-        file: "src/data/litteroinnit.json"
-        format: "json"
-        fields:
-          - label: "Items"
-            name: "items"
-            widget: "list"
-            summary: "{{fields.episodeSlug}}"
-            fields:
-              - { label: "Title", name: "title", widget: "string", required: true }
-              - { label: "Episode slug", name: "episodeSlug", widget: "string", required: false }
-              - label: "Publish date"
-                name: "publishDate"
-                widget: "datetime"
-                required: false
-                date_format: "YYYY-MM-DD"
-                time_format: false
-              - { label: "Excerpt", name: "excerpt", widget: "text", required: false }
-              - { label: "PDF URL", name: "pdfUrl", widget: "string", required: true }
-
   - name: "transcripts"
-    label: "Transcripts"
+    label: "Litteroinnit"
     folder: "src/content/transcripts"
     create: true
     slug: "{{slug}}"
@@ -154,4 +131,4 @@ collections:
         date_format: "YYYY-MM-DD"
         time_format: false
       - { label: "Excerpt", name: "excerpt", widget: "text", required: false }
-      - { label: "Transcript", name: "body", widget: "markdown" }
+      - { label: "Litterointi", name: "body", widget: "markdown" }
