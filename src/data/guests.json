@@ -20,6 +20,27 @@
           "url": "https://x.com/raakaapodcast"
         }
       ]
+    },
+    {
+      "slug": "markus-suominen",
+      "name": "Markus Suominen",
+      "role": "Juontaja",
+      "bio": "Markus Suominen on RAAKAA Podcastin juontaja, ensihoitaja, ja paljon muuta. Yli 40 maata, PADI Rescue Diver -kortti, enduropyörä ja muutama laskuvarjohyppy myöhemmin olen oppinut yhden asian ylitse muiden: uteliaisuus vie pidemmälle kuin asiantuntijuus. Kysymys avaa enemmän ovia kuin vastaus.",
+      "image": "/images/vieraat/markus-suominen.jpg",
+      "links": [
+        {
+          "label": "Instagram",
+          "url": "https://www.instagram.com/raakaapodcast"
+        },
+        {
+          "label": "YouTube",
+          "url": "https://www.youtube.com/@RaakaaPodcast"
+        },
+        {
+          "label": "X",
+          "url": "https://x.com/raakaapodcast"
+        }
+      ]
     }
   ]
 }
