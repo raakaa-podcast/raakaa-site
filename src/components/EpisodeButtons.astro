@@ -1,23 +1,63 @@
 ---
+import SocialIcons from './SocialIcons.astro';
+
 type Props = {
   slug: string;
   title: string;
   audioUrl: string;
   size?: 'small' | 'default';
+  /** When false, hide “Avaa” (e.g. on the episode detail page). */
+  showOpenLink?: boolean;
+  /** If set, show “Katso Youtubessa” with icon after play. */
+  youtubeUrl?: string;
 };
 
-const { slug, title, audioUrl, size = 'small' } = Astro.props;
+const { slug, title, audioUrl, size = 'small', showOpenLink = true, youtubeUrl } = Astro.props;
 const cls = size === 'small' ? 'btn small' : 'btn';
+
+function getYoutubeWatchUrl(url: string | undefined): string | null {
+  if (!url?.trim()) return null;
+  const value = url.trim();
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+    if (host === 'youtu.be') {
+      const id = parsed.pathname.split('/').filter(Boolean)[0];
+      return id ? `https://www.youtube.com/watch?v=${id}` : null;
+    }
+    if (host.includes('youtube.com')) {
+      if (parsed.pathname === '/watch' && parsed.searchParams.get('v')) {
+        return value.split('#')[0];
+      }
+      if (parsed.pathname.startsWith('/embed/')) {
+        const id = parsed.pathname.split('/').filter(Boolean)[1];
+        return id ? `https://www.youtube.com/watch?v=${id}` : null;
+      }
+      if (parsed.pathname.startsWith('/shorts/')) {
+        const id = parsed.pathname.split('/').filter(Boolean)[1];
+        return id ? `https://www.youtube.com/watch?v=${id}` : null;
+      }
+      if (parsed.pathname.startsWith('/@') || parsed.pathname.startsWith('/channel/') || parsed.pathname.startsWith('/c/')) {
+        return value.split('#')[0];
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+const youtubeWatch = getYoutubeWatchUrl(youtubeUrl);
 ---
 
 <div class="episode-buttons">
-  <a
-    class={`${cls} alt`}
-    href={`/jaksot/${slug}`}
-    aria-label={`Avaa jakso: ${title}`}
-  >
-    <span aria-hidden="true">Avaa</span>
-  </a>
+  {
+    showOpenLink && (
+      <a class={`${cls} alt`} href={`/jaksot/${slug}`} aria-label={`Avaa jakso: ${title}`}>
+        <span aria-hidden="true">Avaa</span>
+      </a>
+    )
+  }
   <button
     class={cls}
     type="button"
@@ -28,6 +68,20 @@ const cls = size === 'small' ? 'btn small' : 'btn';
   >
     <span aria-hidden="true">Toista</span>
   </button>
+  {
+    youtubeWatch && (
+      <a
+        class={`${cls} alt youtube-cta`}
+        href={youtubeWatch}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Katso YouTubessa: ${title}`}
+      >
+        <SocialIcons name="youtube" size={size === 'small' ? 18 : 20} />
+        <span>Katso Youtubessa</span>
+      </a>
+    )
+  }
 </div>
 
 <style>
@@ -35,5 +89,15 @@ const cls = size === 'small' ? 'btn small' : 'btn';
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: center;
+  }
+
+  .youtube-cta {
+    gap: 0.45rem;
+  }
+
+  .youtube-cta :global(svg) {
+    flex-shrink: 0;
+    color: #ff0033;
   }
 </style>

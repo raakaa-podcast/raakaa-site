@@ -46,7 +46,8 @@ import SocialIcons from './SocialIcons.astro';
 <style>
   .site-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 3rem 0 8rem;
+    /* Extra bottom space so sticky player never covers Saavutettavuus / Tietosuoja */
+    padding: 3rem 0 clamp(10rem, 24vh, 16rem);
     margin-top: 4rem;
   }
 

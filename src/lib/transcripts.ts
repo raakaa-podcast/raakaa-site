@@ -1,16 +1,9 @@
-import { getCollection } from 'astro:content';
 import fs from 'node:fs/promises';
+import path from 'node:path';
+import { marked } from 'marked';
 import type { Episode } from './rss';
 
-export async function getTranscriptForEpisode(episode: Episode) {
-  const transcripts = await getCollection('transcripts');
-
-  return (
-    transcripts.find((entry) => entry.data.episodeGuid === episode.guid) ||
-    transcripts.find((entry) => entry.data.episodeSlug === episode.slug) ||
-    null
-  );
-}
+const TRANSCRIPTS_DIR = path.join(process.cwd(), 'src', 'content', 'transcripts');
 
 function parseFrontmatter(raw: string): { frontmatter: Record<string, string>; body: string } {
   const normalized = raw.replace(/\r\n/g, '\n');
@@ -20,18 +13,25 @@ function parseFrontmatter(raw: string): { frontmatter: Record<string, string>; b
   for (const line of match[1].split('\n')) {
     const parts = line.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
     if (!parts) continue;
-    frontmatter[parts[1]] = parts[2]?.trim() ?? '';
+    let value = parts[2]?.trim() ?? '';
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    frontmatter[parts[1]] = value;
   }
   return { frontmatter, body: normalized.slice(match[0].length).trim() };
 }
 
-export async function getTranscriptFallbackTextForEpisode(episode: Episode): Promise<string | null> {
-  const dir = new URL('../content/transcripts/', import.meta.url);
+/** Plain markdown body for the episode, read from `src/content/transcripts/*.md`. */
+export async function getTranscriptMarkdownForEpisode(episode: Episode): Promise<string | null> {
   try {
-    const files = await fs.readdir(dir, { withFileTypes: true });
+    const files = await fs.readdir(TRANSCRIPTS_DIR, { withFileTypes: true });
     for (const file of files) {
       if (!file.isFile() || !file.name.endsWith('.md')) continue;
-      const full = new URL(`../content/transcripts/${file.name}`, import.meta.url);
+      const full = path.join(TRANSCRIPTS_DIR, file.name);
       const raw = await fs.readFile(full, 'utf8');
       const { frontmatter, body } = parseFrontmatter(raw);
       if (frontmatter.episodeGuid === episode.guid || frontmatter.episodeSlug === episode.slug) {
@@ -42,4 +42,11 @@ export async function getTranscriptFallbackTextForEpisode(episode: Episode): Pro
     return null;
   }
   return null;
+}
+
+/** HTML for the episode transcript (avoids `getCollection` during static build, where the content data layer can be empty in worker chunks). */
+export async function getTranscriptHtmlForEpisode(episode: Episode): Promise<string | null> {
+  const md = await getTranscriptMarkdownForEpisode(episode);
+  if (!md) return null;
+  return marked.parse(md, { async: false }) as string;
 }

@@ -3,7 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeButtons from '../../components/EpisodeButtons.astro';
 import YoutubeEmbed from '../../components/YoutubeEmbed.astro';
 import { formatFinnishDate, getEpisodesFromRSS, type Episode } from '../../lib/rss';
-import { getTranscriptFallbackTextForEpisode, getTranscriptForEpisode } from '../../lib/transcripts';
+import { getTranscriptHtmlForEpisode } from '../../lib/transcripts';
+import { getPdfTranscriptForEpisode } from '../../lib/litteroinnit';
 import {
   durationToISO,
   formatDuration,
@@ -22,9 +23,8 @@ export async function getStaticPaths() {
 type Props = { episode: Episode };
 const { episode } = Astro.props;
 
-const transcript = await getTranscriptForEpisode(episode);
-const { Content } = transcript ? await transcript.render() : { Content: null };
-const fallbackTranscriptText = !Content ? await getTranscriptFallbackTextForEpisode(episode) : null;
+const transcriptHtml = await getTranscriptHtmlForEpisode(episode);
+const pdfTranscript = await getPdfTranscriptForEpisode(episode);
 const cleanDescription = episode.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const meta = getEpisodeMeta(episode);
 const duration = formatDuration(episode.duration);
@@ -138,6 +138,8 @@ if (guests.length > 0) {
           title={episode.title}
           audioUrl={episode.audioUrl}
           size="default"
+          showOpenLink={false}
+          youtubeUrl={meta.youtubeUrl}
         />
       </div>
 
@@ -146,10 +148,30 @@ if (guests.length > 0) {
       <div class="description" set:html={episode.description}></div>
     </article>
 
-    {(Content || fallbackTranscriptText) && (
+    {(transcriptHtml || pdfTranscript) && (
       <section class="transcript glass" aria-labelledby="transcript-title">
         <h2 id="transcript-title" class="section-title">Jakson litterointi</h2>
-        {Content ? <Content /> : <div class="transcript-plain" set:html={fallbackTranscriptText?.replace(/\n/g, '<br />')}></div>}
+        {transcriptHtml ? (
+          <div class="transcript-md transcript-plain" set:html={transcriptHtml}></div>
+        ) : pdfTranscript ? (
+          <div class="transcript-pdf">
+            <p class="transcript-pdf-intro">
+              <a
+                class="transcript-pdf-link"
+                href={pdfTranscript.data.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Avaa tai lataa litterointi PDF-tiedostona
+              </a>
+            </p>
+            <iframe
+              class="transcript-pdf-frame"
+              src={pdfTranscript.data.pdfUrl}
+              title={pdfTranscript.data.title || 'Jakson litterointi PDF-muodossa'}
+            />
+          </div>
+        ) : null}
       </section>
     )}
   </div>
@@ -299,6 +321,70 @@ if (guests.length > 0) {
   .transcript-plain {
     color: var(--muted);
     line-height: 1.7;
+  }
+
+  .transcript-md :global(p) {
+    margin: 0 0 0.85rem;
+  }
+
+  .transcript-md :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .transcript-md :global(ul),
+  .transcript-md :global(ol) {
+    margin: 0 0 0.85rem 1.25rem;
+    padding: 0;
+  }
+
+  .transcript-md :global(li) {
+    margin-bottom: 0.35rem;
+  }
+
+  .transcript-md :global(strong) {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .transcript-md :global(code) {
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .transcript-md :global(pre) {
+    overflow-x: auto;
+    margin: 0 0 0.85rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border);
+  }
+
+  .transcript-md :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .transcript-pdf-intro {
+    margin: 0 0 1rem;
+  }
+
+  .transcript-pdf-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .transcript-pdf-frame {
+    width: 100%;
+    min-height: min(70vh, 720px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.2);
   }
 
   iframe {
