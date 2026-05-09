@@ -1,12 +1,14 @@
 {
   "episodes": [
     {
-      "episodeSlug": "test",
-      "episodeGuid": "",
-      "guests": ["esimerkki-vieras"],
-      "topics": ["esimerkki", "testi"],
-      "summary": "Tämä on placeholder-jakso, kunnes ensimmäiset jaksot saadaan julkaistua.",
-      "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      "episodeSlug": "2808599",
+      "summary": "Tämä on RAAKAA Podcastin esittelyjakso. RAAKAA on suomalainen keskustelupodcast, jossa käsitellään yhteiskuntaa, ihmismieltä, ilmiöitä ja ajankohtaisia aiheita suoraan ja ilman turhaa silottelua. Pitkät, syvälle menevät keskustelut tarjoavat tilaa ajatuksille, jotka jäävät uutispätkien ja sosiaalisen median klippien jalkoihin.",
+      "topics": [
+        "esittely"
+      ],
+      "guests": [
+        "markussuominen"
+      ]
     }
   ]
 }
