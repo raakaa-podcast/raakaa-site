@@ -26,7 +26,7 @@ const MARKUS_DESCRIPTION =
   'Markus Suominen on RAAKAA Podcastin juontaja, ensihoitaja ja monitoimimies. Yli 40 maata, PADI Rescue Diver, enduro ja muutama laskuvarjohyppy myöhemmin uskoo, että uteliaisuus vie pidemmälle kuin asiantuntijuus.';
 
 const SERIES_SAME_AS = [
-  'https://www.youtube.com/channel/UCUr1eBGlgt4pgngt12KUMIg',
+  'https://www.youtube.com/@RAAKAA-Podcast',
   'https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY',
   'https://podcasts.apple.com/fi/podcast/raakaa/id1896272431',
   'https://rss.com/podcasts/raakaapodcast/',
@@ -36,7 +36,7 @@ const SERIES_SAME_AS = [
 
 const MARKUS_SAME_AS = [
   'https://www.instagram.com/raakaapodcast',
-  'https://www.youtube.com/channel/UCUr1eBGlgt4pgngt12KUMIg',
+  'https://www.youtube.com/@RAAKAA-Podcast',
   'https://x.com/raakaapodcast',
 ];
 

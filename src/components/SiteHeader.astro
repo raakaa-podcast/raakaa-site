@@ -1,4 +1,5 @@
 ---
+import ListenMenu from './ListenMenu.astro';
 import SocialIcons from './SocialIcons.astro';
 const path = Astro.url.pathname.replace(/\/$/, '');
 const isHome = path === '' || path === '/';
@@ -6,7 +7,7 @@ const isHome = path === '' || path === '/';
 type LinkDef = { href: string; label: string; pathMatch?: string };
 const navLinks: LinkDef[] = isHome
   ? [
-      { href: '#jaksot', label: 'Jaksot' },
+      { href: '/jaksot', label: 'Jaksot', pathMatch: '/jaksot' },
       { href: '/markus', label: 'Markus' },
       { href: '/vieraat', label: 'Vieraat' },
       { href: '#tilaa', label: 'Tilaa' },
@@ -45,10 +46,10 @@ const isCurrent = (link: LinkDef): boolean => {
     <div class="header-extras">
       <div class="header-socials" aria-label="Sosiaalinen media">
         <a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="Instagram"><SocialIcons name="instagram" /></a>
-        <a href="https://www.youtube.com/channel/UCUr1eBGlgt4pgngt12KUMIg" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" /></a>
+        <a href="https://www.youtube.com/@RAAKAA-Podcast" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" /></a>
         <a href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="X"><SocialIcons name="x" /></a>
       </div>
-      <a class="btn cta" href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer">Kuuntele</a>
+      <ListenMenu variant="header" />
 
       <button
         class="hamburger"
@@ -88,13 +89,13 @@ const isCurrent = (link: LinkDef): boolean => {
 
   <div class="mobile-socials">
     <a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="Instagram"><SocialIcons name="instagram" size={22} /></a>
-    <a href="https://www.youtube.com/channel/UCUr1eBGlgt4pgngt12KUMIg" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" size={22} /></a>
+    <a href="https://www.youtube.com/@RAAKAA-Podcast" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" size={22} /></a>
     <a href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="X"><SocialIcons name="x" size={22} /></a>
     <a href="https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY" target="_blank" rel="noreferrer" aria-label="Spotify"><SocialIcons name="spotify" size={22} /></a>
     <a href="https://podcasts.apple.com/fi/podcast/raakaa/id1896272431" target="_blank" rel="noreferrer" aria-label="Apple Podcasts"><SocialIcons name="apple" size={22} /></a>
   </div>
 
-  <a class="btn mobile-cta" href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer">Kuuntele kaikilla alustoilla</a>
+  <ListenMenu variant="mobile" />
 </div>
 
 <script is:inline>
@@ -142,7 +143,7 @@ const isCurrent = (link: LinkDef): boolean => {
     width: min(1120px, 92vw);
     z-index: 70;
     will-change: transform;
-    contain: layout paint;
+    contain: layout;
   }
 
   .header-inner {
@@ -236,7 +237,6 @@ const isCurrent = (link: LinkDef): boolean => {
     padding: 0.55rem 1rem;
   }
 
-  /* Hamburger button */
   .hamburger {
     display: none;
     appearance: none;
@@ -337,11 +337,6 @@ const isCurrent = (link: LinkDef): boolean => {
     color: var(--accent);
   }
 
-  .mobile-cta {
-    align-self: flex-start;
-    margin-top: 0.5rem;
-  }
-
   :global(body.menu-open) {
     overflow: hidden;
   }
@@ -353,7 +348,7 @@ const isCurrent = (link: LinkDef): boolean => {
     .header-socials {
       display: none;
     }
-    .cta {
+    .listen-header {
       display: none;
     }
     .hamburger {

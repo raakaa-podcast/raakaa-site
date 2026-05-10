@@ -35,8 +35,11 @@ Desktop.ini
 *.swp
 *.swo
 
-# Local Netlify folder
-.netlify
+# Paikallisesti generoidut jaksokuvat (npm run thumbs)
+local-thumbnails/
+
+# Netlify CLI -paikallinen cache
+.netlify/
 
 # Pidetään hallintaohjeet ja brändipaketti vain lokaalisti
 README.md

@@ -1,0 +1,103 @@
+---
+import { formatFinnishDate, getEpisodesFromRSS } from '../../../lib/rss';
+
+export async function getStaticPaths() {
+  const episodes = await getEpisodesFromRSS();
+  return episodes.map((episode) => ({
+    params: { slug: episode.slug },
+    props: { episode },
+  }));
+}
+
+const { episode } = Astro.props;
+const publishedLabel = formatFinnishDate(episode.publishedAt);
+const docTitle = `${episode.title} | RAAKAA`;
+---
+
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="dark" />
+    <title>{docTitle}</title>
+    <style>
+      :root {
+        --bg: #0c0c0c;
+        --text: #f2f2f2;
+        --muted: #a4a4a4;
+        --accent: #ffd400;
+        --border: rgba(255, 255, 255, 0.14);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 12px 14px 14px;
+        line-height: 1.35;
+      }
+
+      .embed-shell {
+        max-width: 100%;
+      }
+
+      .embed-published {
+        margin: 0 0 6px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .embed-heading {
+        margin: 0 0 10px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      audio {
+        width: 100%;
+        height: 40px;
+        border-radius: 8px;
+      }
+
+      audio::-webkit-media-controls-panel {
+        background: #1a1a1a;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="embed-shell">
+      <p class="embed-published">{publishedLabel}</p>
+      <h1 class="embed-heading">{episode.title}</h1>
+      <audio controls preload="metadata" src={episode.audioUrl} aria-label={`Kuuntele: ${episode.title}`}>
+      </audio>
+    </main>
+  </body>
+</html>

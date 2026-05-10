@@ -1,7 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EpisodeCard from '../components/EpisodeCard.astro';
+import ListenMenu from '../components/ListenMenu.astro';
 import SocialIcons from '../components/SocialIcons.astro';
+import {
+  LISTEN_APPLE_URL,
+  LISTEN_RSS_COM_URL,
+  LISTEN_SPOTIFY_URL,
+  LISTEN_YOUTUBE_URL,
+} from '../data/listen-platforms';
 import { getEpisodesFromRSS } from '../lib/rss';
 
 const episodes = await getEpisodesFromRSS();
@@ -50,10 +57,12 @@ const orgSchema = {
   url: 'https://www.raakaa.fi',
   logo: 'https://www.raakaa.fi/og-image.jpg',
   sameAs: [
-    'https://www.youtube.com/channel/UCUr1eBGlgt4pgngt12KUMIg',
+    LISTEN_SPOTIFY_URL,
+    LISTEN_APPLE_URL,
+    LISTEN_YOUTUBE_URL,
     'https://www.instagram.com/raakaapodcast',
     'https://x.com/raakaapodcast',
-    'https://rss.com/podcasts/raakaapodcast/',
+    LISTEN_RSS_COM_URL,
   ],
 };
 ---
@@ -82,18 +91,19 @@ const orgSchema = {
       <p class="hero-lead">
         Suomalainen keskustelupodcast, jossa annetaan vieraille aikaa, tilaa ja mahdollisuus kertoa oma näkökulma ilman turhaa silottelua.
       </p>
-      <div class="actions">
-        <a class="btn" href="#jaksot">Kuuntele</a>
-        <a class="btn alt" href="/markus">Tarina</a>
-      </div>
+      <ListenMenu variant="hero" />
     </div>
   </section>
 
   {latestEpisodes.length > 0 && (
     <section id="jaksot" class="episodes max" aria-labelledby="jaksot-title">
       <div class="section-head">
-        <h2 id="jaksot-title">Uusimmat <span>jaksot</span></h2>
-        <a class="btn alt small" href="/jaksot">Selaa kaikki</a>
+        {episodes.length === 1 ? (
+          <h2 id="jaksot-title">Uusin <span>jakso</span></h2>
+        ) : (
+          <h2 id="jaksot-title">Uusimmat <span>jaksot</span></h2>
+        )}
+        {episodes.length > 3 && <a class="btn alt small" href="/jaksot">Selaa kaikki</a>}
       </div>
       <div class={`episode-grid count-${latestEpisodes.length}`}>
         {latestEpisodes.map((episode) => (
@@ -179,12 +189,12 @@ const orgSchema = {
       RAAKAA Podcast julkaistaan 22 eri palveluun. Tilaa suosikkialustallasi tai liity yhteisöön sosiaalisessa mediassa.
     </p>
     <ul class="platform-grid">
-      <li><a class="platform glass" href="https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY" target="_blank" rel="noreferrer"><SocialIcons name="spotify" size={22} /><span>Spotify</span></a></li>
-      <li><a class="platform glass" href="https://podcasts.apple.com/fi/podcast/raakaa/id1896272431" target="_blank" rel="noreferrer"><SocialIcons name="apple" size={22} /><span>Apple Podcasts</span></a></li>
-      <li><a class="platform glass" href="https://www.youtube.com/channel/UCUr1eBGlgt4pgngt12KUMIg" target="_blank" rel="noreferrer"><SocialIcons name="youtube" size={22} /><span>YouTube</span></a></li>
+      <li><a class="platform glass" href={LISTEN_SPOTIFY_URL} target="_blank" rel="noreferrer"><SocialIcons name="spotify" size={22} /><span>Spotify</span></a></li>
+      <li><a class="platform glass" href={LISTEN_APPLE_URL} target="_blank" rel="noreferrer"><SocialIcons name="apple" size={22} /><span>Apple Podcasts</span></a></li>
+      <li><a class="platform glass" href={LISTEN_YOUTUBE_URL} target="_blank" rel="noreferrer"><SocialIcons name="youtube" size={22} /><span>YouTube</span></a></li>
       <li><a class="platform glass" href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer"><SocialIcons name="instagram" size={22} /><span>Instagram</span></a></li>
       <li><a class="platform glass" href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer"><SocialIcons name="x" size={22} /><span>X</span></a></li>
-      <li><a class="platform glass" href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noreferrer"><SocialIcons name="rss" size={22} /><span>RSS.com</span></a></li>
+      <li><a class="platform glass" href={LISTEN_RSS_COM_URL} target="_blank" rel="noreferrer"><SocialIcons name="rss" size={22} /><span>RSS.com</span></a></li>
     </ul>
   </section>
 
@@ -223,7 +233,11 @@ const orgSchema = {
         />
         <label class="consent">
           <input type="checkbox" name="suostumus" value="kylla" required aria-required="true" />
-          <span>Hyväksyn, että sähköpostiosoitettani käytetään ainoastaan jaksomuistutuksiin. <span class="req" aria-hidden="true">*</span></span>
+          <span>
+            Hyväksyn, että sähköpostiosoitettani käytetään ainoastaan jaksomuistutuksiin. Lue{' '}
+            <a class="form-inline-link" href="/tietosuoja">tietosuojaseloste</a>.{' '}
+            <span class="req" aria-hidden="true">*</span>
+          </span>
         </label>
         <button class="btn" type="submit">Tilaa</button>
       </form>
@@ -269,7 +283,10 @@ const orgSchema = {
         <span>Viesti <span class="req" aria-hidden="true">*</span></span>
         <textarea name="viesti" rows="5" required></textarea>
       </label>
-      <p class="form-note muted"><span aria-hidden="true">*</span> Pakollinen kenttä</p>
+      <p class="form-note muted">
+        <span aria-hidden="true">*</span> Pakollinen kenttä. Lue{' '}
+        <a class="form-inline-link" href="/tietosuoja">tietosuojaseloste</a>.
+      </p>
       <button class="btn full-btn" type="submit">Lähetä viesti</button>
     </form>
   </section>
@@ -332,7 +349,7 @@ const orgSchema = {
     min-height: 100svh;
     display: grid;
     place-items: center;
-    overflow: hidden;
+    overflow: visible;
     margin-top: -1px;
   }
 
@@ -394,15 +411,6 @@ const orgSchema = {
     line-height: 1.6;
   }
 
-  .actions {
-    margin-top: 1.6rem;
-    display: flex;
-    justify-content: center;
-    gap: 0.9rem;
-    flex-wrap: wrap;
-  }
-
-  .episodes,
   .follow {
     padding: 5rem 0 3rem;
   }
@@ -661,6 +669,25 @@ const orgSchema = {
   .consent input {
     margin-top: 0.18rem;
     accent-color: var(--accent);
+  }
+
+  .form-inline-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .form-inline-link:hover {
+    color: var(--text);
+    text-decoration-color: var(--accent);
+  }
+
+  .form-inline-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
   .visually-hidden {

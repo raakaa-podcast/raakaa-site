@@ -1,0 +1,240 @@
+---
+type Props = {
+  slug: string;
+  title: string;
+};
+
+const { slug, title } = Astro.props;
+
+const base = Astro.site ?? new URL('https://www.raakaa.fi');
+const embedPageUrl = new URL(`/jaksot/${slug}/embed`, base).href.replace(/\/$/, '');
+
+const escapeAttr = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+const iframeSnippet = `<iframe\n  src="${embedPageUrl}"\n  width="100%"\n  height="180"\n  frameborder="0"\n  title="${escapeAttr(title)}"\n  allow="autoplay">\n</iframe>`;
+
+const snippetFieldId = `embed-code-${slug}`;
+---
+
+<section class="episode-embed-block" aria-label="Upota jakso">
+  <details class="episode-embed-details">
+    <summary class="embed-summary btn alt">
+      <span class="embed-summary-glyph" aria-hidden="true">&lt;/&gt;</span>
+      <span>Upota</span>
+    </summary>
+    <div class="embed-panel">
+      <label class="embed-label" for={snippetFieldId}>HTML-upotuskoodi</label>
+      <div class="embed-toolbar">
+        <textarea
+          id={snippetFieldId}
+          class="embed-snippet"
+          readonly
+          rows={8}
+          aria-describedby="embed-snippet-hint">{iframeSnippet}</textarea>
+        <div class="embed-actions">
+          <button type="button" class="btn embed-copy" data-embed-copy>
+            Kopioi koodi
+          </button>
+          <a
+            class="btn alt embed-demo"
+            href="/demo/upotus"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Avaa upotetun soittimen demoesimerkki uuteen välilehteen"
+          >
+            Näytä demo
+          </a>
+        </div>
+      </div>
+      <p id="embed-snippet-hint" class="embed-hint muted">
+        Liitä koodi sivustollesi. Soitin toimii upotuksessa ilman pääsivuston valikkoa.
+      </p>
+      <p class="embed-copy-toast" data-embed-toast role="status" aria-live="polite" aria-atomic="true" hidden></p>
+    </div>
+  </details>
+</section>
+
+<script>
+  (function () {
+    var roots = document.querySelectorAll('.episode-embed-block');
+    roots.forEach(function (root) {
+      var btn = root.querySelector('[data-embed-copy]');
+      var ta = root.querySelector('.embed-snippet');
+      var toast = root.querySelector('[data-embed-toast]');
+      if (!btn || !ta || !(ta instanceof HTMLTextAreaElement) || !toast) return;
+
+      var t = 0;
+      btn.addEventListener('click', function () {
+        var text = ta.value;
+        function show() {
+          toast.textContent = 'Kopioitu!';
+          toast.hidden = false;
+          window.clearTimeout(t);
+          t = window.setTimeout(function () {
+            toast.textContent = '';
+            toast.hidden = true;
+          }, 2600);
+        }
+        function fallback() {
+          ta.focus();
+          ta.select();
+          try {
+            document.execCommand('copy');
+            show();
+          } catch (_) {}
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(show).catch(fallback);
+        } else {
+          fallback();
+        }
+      });
+    });
+  })();
+</script>
+
+<style>
+  .episode-embed-block {
+    margin: 0 0 1.4rem;
+  }
+
+  .episode-embed-details {
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 12px);
+    background: rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+  }
+
+  .embed-summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 0;
+    border: 0;
+    font: inherit;
+    text-align: left;
+    padding: 0.65rem 1rem;
+  }
+
+  .embed-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .embed-summary::after {
+    content: '';
+    margin-left: auto;
+    width: 0.45em;
+    height: 0.45em;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translateY(-0.08em);
+    opacity: 0.7;
+  }
+
+  .episode-embed-details[open] .embed-summary::after {
+    transform: rotate(225deg) translate(0.1em, -0.05em);
+  }
+
+  .embed-summary-glyph {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85em;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+
+  .embed-panel {
+    padding: 0 1rem 1rem;
+    position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .embed-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .embed-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: flex-start;
+    margin-top: 0.75rem;
+  }
+
+  .embed-snippet {
+    flex: 1 1 220px;
+    min-height: 7.5rem;
+    margin: 0;
+    padding: 0.75rem 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    resize: vertical;
+  }
+
+  .embed-snippet:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .embed-copy {
+    flex: 0 0 auto;
+    align-self: stretch;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .embed-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    min-width: min(100%, 11rem);
+  }
+
+  .embed-demo {
+    white-space: nowrap;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .embed-hint {
+    margin: 0.6rem 0 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  .embed-copy-toast {
+    margin: 0.55rem 0 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .embed-copy-toast[hidden] {
+    display: none !important;
+  }
+</style>

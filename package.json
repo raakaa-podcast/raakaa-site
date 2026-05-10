@@ -12,7 +12,11 @@
     "astro": "astro",
     "validate": "tsx scripts/validate-content.ts",
     "rss-sync": "tsx scripts/rss-sync.ts",
-    "rss-sync:dry": "tsx scripts/rss-sync.ts --dry-run"
+    "rss-sync:dry": "tsx scripts/rss-sync.ts --dry-run",
+    "rss:list": "tsx scripts/rss-list.ts",
+    "thumbs": "tsx scripts/generate-thumbnails.ts",
+    "episode:info": "tsx scripts/episode-info.ts",
+    "favicons": "node scripts/favicons.mjs"
   },
   "dependencies": {
     "@astrojs/netlify": "^7.0.8",

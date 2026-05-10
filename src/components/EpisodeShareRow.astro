@@ -1,0 +1,257 @@
+---
+import SocialIcons from './SocialIcons.astro';
+
+type Props = {
+  title: string;
+  url: string;
+};
+
+const { title, url } = Astro.props;
+
+const whatsAppHref = `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
+const xHref = `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+
+const iconSize = 20;
+---
+
+<div class="episode-share" id="episode-share" aria-label="Jaa jakso">
+  <p class="share-label">Jaa</p>
+  <div class="share-row">
+    <a
+      class="share-btn"
+      href={whatsAppHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Jaa WhatsAppissa"
+      aria-label="Jaa WhatsAppissa"
+    >
+      <SocialIcons name="whatsapp" size={iconSize} />
+    </a>
+    <a
+      class="share-btn"
+      href={xHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Jaa X:ssä"
+      aria-label="Jaa X:ssä"
+    >
+      <SocialIcons name="x" size={iconSize} />
+    </a>
+    <a
+      class="share-btn"
+      href={linkedInHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Jaa LinkedInissä"
+      aria-label="Jaa LinkedInissä"
+    >
+      <SocialIcons name="linkedin" size={iconSize} />
+    </a>
+    <button
+      type="button"
+      class="share-btn share-copy"
+      data-share-copy
+      data-share-url={url}
+      title="Kopioi linkki"
+      aria-label="Kopioi linkki"
+    >
+      <span class="share-copy__idle" aria-hidden="true">
+        <SocialIcons name="link" size={iconSize} />
+      </span>
+      <span class="share-copy__done" aria-hidden="true" hidden>
+        <SocialIcons name="check" size={iconSize} />
+      </span>
+    </button>
+  </div>
+  <div
+    class="share-toast"
+    data-share-toast
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    hidden
+  ></div>
+</div>
+
+<script>
+  (function () {
+    var root = document.getElementById('episode-share');
+    if (!root) return;
+    var btn = root.querySelector('[data-share-copy]');
+    var toast = root.querySelector('[data-share-toast]');
+    if (!btn || !(btn instanceof HTMLButtonElement) || !toast) return;
+
+    var idle = btn.querySelector('.share-copy__idle');
+    var done = btn.querySelector('.share-copy__done');
+    var url = btn.getAttribute('data-share-url') || '';
+    var copyTimer = 0;
+    var iconTimer = 0;
+
+    function showToast() {
+      toast.textContent = 'Kopioitu!';
+      toast.hidden = false;
+      window.clearTimeout(copyTimer);
+      copyTimer = window.setTimeout(function () {
+        toast.textContent = '';
+        toast.hidden = true;
+      }, 2600);
+    }
+
+    function setCopiedState(on) {
+      btn.classList.toggle('is-copied', on);
+      if (idle) idle.hidden = on;
+      if (done) done.hidden = !on;
+      if (on) {
+        btn.setAttribute('aria-label', 'Linkki kopioitu');
+      } else {
+        btn.setAttribute('aria-label', 'Kopioi linkki');
+      }
+    }
+
+    btn.addEventListener('click', function () {
+      function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast();
+          setCopiedState(true);
+          window.clearTimeout(iconTimer);
+          iconTimer = window.setTimeout(function () {
+            setCopiedState(false);
+          }, 2000);
+        } catch (_) {}
+        document.body.removeChild(ta);
+      }
+
+      if (!url) return;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          showToast();
+          setCopiedState(true);
+          window.clearTimeout(iconTimer);
+          iconTimer = window.setTimeout(function () {
+            setCopiedState(false);
+          }, 2000);
+        }).catch(function () {
+          fallbackCopy(url);
+        });
+      } else {
+        fallbackCopy(url);
+      }
+    });
+  })();
+</script>
+
+<style>
+  .episode-share {
+    position: relative;
+    margin: 1.25rem 0 1.5rem;
+  }
+
+  .share-label {
+    margin: 0 0 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .share-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease,
+      transform 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .share-btn:hover {
+    background: rgba(255, 212, 0, 0.1);
+    border-color: rgba(255, 212, 0, 0.35);
+    color: var(--accent);
+  }
+
+  .share-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .share-btn:active {
+    transform: scale(0.96);
+  }
+
+  .share-copy {
+    position: relative;
+  }
+
+  .share-copy.is-copied {
+    background: rgba(52, 199, 89, 0.15);
+    border-color: rgba(52, 199, 89, 0.45);
+    color: #6ee7a8;
+  }
+
+  .share-copy.is-copied:hover {
+    color: #6ee7a8;
+    border-color: rgba(52, 199, 89, 0.55);
+  }
+
+  .share-copy__idle,
+  .share-copy__done {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .share-copy__done:not([hidden]) {
+    display: flex;
+  }
+
+  .share-toast {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 0.35rem);
+    bottom: auto;
+    padding: 0.38rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .share-toast[hidden] {
+    display: none !important;
+  }
+</style>

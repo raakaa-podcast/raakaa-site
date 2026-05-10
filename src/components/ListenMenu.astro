@@ -1,0 +1,261 @@
+---
+import {
+  LISTEN_APPLE_URL,
+  LISTEN_RSS_COM_URL,
+  LISTEN_SPOTIFY_URL,
+  LISTEN_YOUTUBE_URL,
+} from '../data/listen-platforms';
+
+type Props = { variant: 'hero' | 'header' | 'mobile' };
+
+const { variant } = Astro.props;
+
+const MORE = [
+  { href: LISTEN_APPLE_URL, label: 'Apple Podcasts' },
+  { href: LISTEN_YOUTUBE_URL, label: 'YouTube' },
+  { href: LISTEN_RSS_COM_URL, label: 'RSS.com' },
+] as const;
+---
+
+{
+  variant === 'hero' && (
+    <div class="listen-hero">
+      <a
+        class="btn btn-listen-primary"
+        href={LISTEN_SPOTIFY_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Kuuntele Spotifyssa
+      </a>
+      <details class="listen-more listen-more--hero">
+        <summary class="btn alt listen-more__summary">
+          <span>Muut alustat</span>
+        </summary>
+        <nav class="listen-more__panel glass" aria-label="Muut kuuntelualustat">
+          {MORE.map((item) => (
+            <a href={item.href} target="_blank" rel="noreferrer">
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </details>
+      <a class="btn alt" href="/markus">
+        Tarina
+      </a>
+    </div>
+  )
+}
+
+{
+  variant === 'header' && (
+    <div class="listen-header">
+      <a
+        class="btn cta btn-listen-primary-header"
+        href={LISTEN_SPOTIFY_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Kuuntele Spotifyssa
+      </a>
+      <details class="listen-more listen-more--header">
+        <summary class="btn alt cta-secondary listen-more__summary">
+          <span>Muut alustat</span>
+        </summary>
+        <nav class="listen-more__panel glass listen-more__panel--header" aria-label="Muut kuuntelualustat">
+          {MORE.map((item) => (
+            <a href={item.href} target="_blank" rel="noreferrer">
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </details>
+    </div>
+  )
+}
+
+{
+  variant === 'mobile' && (
+    <div class="listen-mobile">
+      <a
+        class="btn mobile-cta btn-listen-primary-mobile"
+        href={LISTEN_SPOTIFY_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Kuuntele Spotifyssa
+      </a>
+      <details class="listen-more listen-more--mobile">
+        <summary class="btn alt mobile-cta-alt listen-more__summary">
+          <span>Muut alustat</span>
+        </summary>
+        <nav class="listen-more__panel glass listen-more__panel--mobile" aria-label="Muut kuuntelualustat">
+          {MORE.map((item) => (
+            <a href={item.href} target="_blank" rel="noreferrer">
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </details>
+    </div>
+  )
+}
+
+<style>
+  .listen-hero {
+    margin-top: 1.6rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-listen-primary {
+    font-size: 1.05rem;
+    padding: 0.88rem 1.55rem;
+    box-shadow:
+      0 4px 22px rgba(255, 212, 0, 0.35),
+      0 1px 0 rgba(255, 255, 255, 0.12) inset;
+  }
+
+  .btn-listen-primary:hover {
+    transform: translateY(-1px);
+  }
+
+  .listen-more {
+    position: relative;
+  }
+
+  .listen-more__summary {
+    list-style: none;
+    cursor: pointer;
+    gap: 0.35rem;
+  }
+
+  .listen-more__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .listen-more__summary::after {
+    content: '';
+    display: inline-block;
+    width: 0.45em;
+    height: 0.45em;
+    margin-left: 0.15em;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translateY(-0.1em);
+    opacity: 0.75;
+  }
+
+  .listen-more[open] .listen-more__summary::after {
+    transform: rotate(225deg) translate(0.05em, -0.05em);
+  }
+
+  .listen-more__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0.6rem;
+    padding: 0.35rem 0;
+    min-width: 200px;
+    border-radius: var(--radius);
+    text-align: left;
+  }
+
+  .listen-more__panel a {
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 120ms ease, color 120ms ease;
+  }
+
+  .listen-more__panel a:last-child {
+    border-bottom: 0;
+  }
+
+  .listen-more__panel a:hover,
+  .listen-more__panel a:focus-visible {
+    background: rgba(255, 212, 0, 0.1);
+    color: var(--accent);
+  }
+
+  .listen-more--hero {
+    z-index: 80;
+  }
+
+  .listen-more--hero .listen-more__panel {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    margin-top: 0.45rem;
+  }
+
+  .listen-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .btn-listen-primary-header {
+    white-space: nowrap;
+  }
+
+  .cta-secondary {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.55rem 0.85rem;
+    white-space: nowrap;
+  }
+
+  .listen-more--header {
+    z-index: 2;
+  }
+
+  .listen-more--header .listen-more__panel--header {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    margin-top: 0;
+    z-index: 1;
+    min-width: 220px;
+    box-shadow: var(--shadow);
+  }
+
+  .listen-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 0.5rem;
+    align-items: stretch;
+  }
+
+  .btn-listen-primary-mobile {
+    align-self: stretch;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .mobile-cta-alt {
+    align-self: stretch;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .listen-more--mobile .listen-more__panel--mobile {
+    margin-top: 0;
+  }
+
+  @media (max-width: 420px) {
+    .btn-listen-primary {
+      font-size: 0.95rem;
+      padding: 0.8rem 1.2rem;
+    }
+  }
+</style>
