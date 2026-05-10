@@ -9,8 +9,8 @@
 #   default cover) come from RSS.com at build time and are NOT editable here.
 #
 # Custom preview pane: public/admin/index.html registers a live preview that
-# renders the three downloadable thumbnail variants (square 3000×3000,
-# YouTube 1920×1080, OG 1200×630) as you type — no save/build required.
+# renders square 3000×3000 (JPEG for RSS size), YouTube 1920×1080, OG 1200×630
+# (PNG) as you type — no save/build required.
 
 backend:
   name: git-gateway
@@ -48,8 +48,8 @@ collections:
     description: |
       Yksi tiedosto per jakso. Esikatselupaneeli oikealla renderöi reaaliajassa
       neliön, YouTuben (16:9) ja OG-kansikuvat — voit ladata ne suoraan ilman
-      julkaisua. Julkaisun jälkeen pre-renderoidut PNG:t löytyvät myös
-      osoitteesta /admin/kuvat.
+      julkaisua. Julkaisun jälkeen valmiit kuvat ovat osoitteessa /admin/kuvat
+      (neliö 3000×3000 JPEG RSS:n kokorajaa varten; YouTube ja OG PNG.)
     folder: "src/content/episodes"
     create: true
     slug: "{{fields.episodeSlug}}"

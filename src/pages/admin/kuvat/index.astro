@@ -10,16 +10,18 @@ type ArtFormat = {
   hint: string;
   url: (slug: string) => string;
   filename: (slug: string) => string;
+  downloadLabel: string;
 };
 
 const FORMATS: ArtFormat[] = [
   {
     id: 'square',
-    label: 'Square (3000×3000)',
+    label: 'Square (3000×3000, JPEG)',
     dimensions: '3000×3000',
-    hint: 'Apple Podcasts, Spotify (audio), RSS.com episode art',
-    url: (slug) => `/admin/kuvat/${slug}-square.png`,
-    filename: (slug) => `raakaa-${slug}-3000x3000.png`,
+    hint: 'Apple Podcasts, Spotify (audio), RSS.com — JPEG pienempi kuin PNG (usein alle 5 Mt)',
+    url: (slug) => `/admin/kuvat/${slug}-square.jpg`,
+    filename: (slug) => `raakaa-${slug}-3000x3000.jpg`,
+    downloadLabel: 'Lataa JPEG',
   },
   {
     id: 'youtube',
@@ -28,6 +30,7 @@ const FORMATS: ArtFormat[] = [
     hint: 'YouTube thumbnail, Spotify Video, banner',
     url: (slug) => `/admin/kuvat/${slug}-youtube.png`,
     filename: (slug) => `raakaa-${slug}-1920x1080.png`,
+    downloadLabel: 'Lataa PNG',
   },
   {
     id: 'og',
@@ -36,6 +39,7 @@ const FORMATS: ArtFormat[] = [
     hint: 'Open Graph / social sharing previews',
     url: (slug) => `/og/jaksot/${slug}.png`,
     filename: (slug) => `raakaa-${slug}-1200x630.png`,
+    downloadLabel: 'Lataa PNG',
   },
 ];
 ---
@@ -54,10 +58,9 @@ const FORMATS: ArtFormat[] = [
       <p class="eyebrow">Admin</p>
       <h1>Jaksokuvat</h1>
       <p class="lead">
-        Lataa jokaiselle jaksolle valmis kansikuva Apple Podcastsiin (square),
-        YouTubeen (16:9) ja sosiaaliseen mediaan (OG). Kuvat generoidaan
-        automaattisesti uudelleen aina, kun jakso tai sen tiedot päivittyvät
-        Decapissa ja sivusto rakennetaan uudelleen.
+        Lataa jokaiselle jaksolle kansikuva: neliö 3000×3000{' '}
+        <strong>JPEG</strong> (pieni tiedosto RSS- ja podcast-hostien rajoituksia varten),{' '}
+        YouTube 16:9 ja OG PNG. Kuvat generoituvat uudelleen, kun build päivittyy.
       </p>
       <p class="links">
         <a href="/admin/index.html" target="_blank" rel="noopener">↩︎ Takaisin Decap-editoriin</a>
@@ -105,7 +108,7 @@ const FORMATS: ArtFormat[] = [
                     href={fmt.url(episode.slug)}
                     download={fmt.filename(episode.slug)}
                   >
-                    Lataa PNG
+                    {fmt.downloadLabel}
                   </a>
                   <a
                     class="btn secondary"

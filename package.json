@@ -9,7 +9,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "validate": "tsx scripts/validate-content.ts",
+    "rss-sync": "tsx scripts/rss-sync.ts",
+    "rss-sync:dry": "tsx scripts/rss-sync.ts --dry-run"
   },
   "dependencies": {
     "@astrojs/netlify": "^7.0.8",
@@ -21,6 +24,10 @@
     "fast-xml-parser": "^5.7.2",
     "gray-matter": "^4.0.3",
     "marked": "^18.0.3",
-    "satori": "^0.26.0"
+    "satori": "^0.26.0",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }

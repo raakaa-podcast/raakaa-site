@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getEpisodesFromRSS, type Episode } from '../../../lib/rss';
-import { renderEpisodeArt } from '../../../lib/ogImage';
+import { getEpisodeArtMime, renderEpisodeArt } from '../../../lib/ogImage';
 
 export async function getStaticPaths() {
   const episodes = await getEpisodesFromRSS();
@@ -12,11 +12,11 @@ export async function getStaticPaths() {
 
 export const GET: APIRoute = async ({ props }) => {
   const episode = (props as { episode: Episode }).episode;
-  const png = await renderEpisodeArt(episode, 'square');
-  return new Response(new Uint8Array(png), {
+  const body = await renderEpisodeArt(episode, 'square');
+  return new Response(new Uint8Array(body), {
     status: 200,
     headers: {
-      'Content-Type': 'image/png',
+      'Content-Type': getEpisodeArtMime('square'),
       'Cache-Control': 'public, max-age=3600, s-maxage=86400',
     },
   });

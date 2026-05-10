@@ -30,7 +30,7 @@ const parser = new XMLParser({
   attributeNamePrefix: '@_',
   trimValues: true,
 });
-const DEFAULT_RSS_FEED_URL = 'https://media.rss.com/raakaapodcast/feed.xml';
+export const DEFAULT_RSS_FEED_URL = 'https://media.rss.com/raakaapodcast/feed.xml';
 
 function createSlug(value: string): string {
   return value
@@ -52,7 +52,7 @@ function toText(value: unknown): string {
 }
 
 export async function getEpisodesFromRSS(feedUrl?: string): Promise<Episode[]> {
-  const url = feedUrl ?? import.meta.env.PUBLIC_RSS_FEED_URL ?? DEFAULT_RSS_FEED_URL;
+  const url = feedUrl ?? import.meta.env?.PUBLIC_RSS_FEED_URL ?? DEFAULT_RSS_FEED_URL;
 
   if (!url) {
     return [];
@@ -65,6 +65,16 @@ export async function getEpisodesFromRSS(feedUrl?: string): Promise<Episode[]> {
     }
 
     const xml = await response.text();
+    return parseEpisodesFromRssXml(xml);
+  } catch (error) {
+    console.error('RSS parsing error:', error);
+    return [];
+  }
+}
+
+/** Parse already-fetched RSS XML (same rules as the live fetch). */
+export function parseEpisodesFromRssXml(xml: string): Episode[] {
+  try {
     const parsed = parser.parse(xml) as {
       rss?: { channel?: { item?: RssItem | RssItem[]; image?: { url?: string } } };
     };
@@ -93,8 +103,8 @@ export async function getEpisodesFromRSS(feedUrl?: string): Promise<Episode[]> {
         if (typeof rawEpisodeNumber === 'number' && Number.isFinite(rawEpisodeNumber)) {
           episodeNumber = rawEpisodeNumber;
         } else if (typeof rawEpisodeNumber === 'string' && rawEpisodeNumber.trim()) {
-          const parsed = Number.parseInt(rawEpisodeNumber, 10);
-          if (!Number.isNaN(parsed)) episodeNumber = parsed;
+          const parsedEp = Number.parseInt(rawEpisodeNumber, 10);
+          if (!Number.isNaN(parsedEp)) episodeNumber = parsedEp;
         }
 
         return {
@@ -112,7 +122,7 @@ export async function getEpisodesFromRSS(feedUrl?: string): Promise<Episode[]> {
       })
       .filter((item): item is Episode => item !== null);
   } catch (error) {
-    console.error('RSS parsing error:', error);
+    console.error('RSS XML parse error:', error);
     return [];
   }
 }

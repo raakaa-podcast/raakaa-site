@@ -1,0 +1,48 @@
+# Synkronoi RSS-syötteen muutokset repoon vain kun feed oikeasti muuttuu.
+#
+# - Ajastettu ajo (cron) hakee feedin ja vertaa SHA-256-sormenjälkeä
+#   src/data/rss-feed-fingerprint.txt -tiedostoon.
+# - Jos sama → työ päättyy heti: ei commitia, ei pushia, Netlyfy ei saa autopushia.
+# - Jos eri → päivitetään sormenjälki, luodaan stubit uusille GUIDeille (tarvittaessa),
+#   commit + push origin main. Netlify rakentuu tavallisesti git-pushista.
+#
+# Manuaaliset Decap-muutokset ja paikalliset pushit: ennallaan (ei riippuvuutta tästä).
+#
+# workflow_dispatch — käynnitä käsin testiin (tai kun haluat pakottaa synkkauksen).
+#
+# Branch protection: jos main vaatii PR:n, anna GitHub Actionsille bypass tai käytä PAT:ia.
+
+name: RSS sync (on feed change)
+
+on:
+  schedule:
+    - cron: '20 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rss-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Synkkaa vain jos RSS on muuttunut
+        env:
+          CI: 'true'
+        run: npm run rss-sync

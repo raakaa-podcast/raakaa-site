@@ -1,5 +1,6 @@
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import sharp from 'sharp';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 
@@ -10,7 +11,8 @@ import type { Episode } from './rss';
  * Build-time renderer for episode artwork in three formats:
  *   - 'og'      → 1200x630  (Open Graph / social previews)
  *   - 'youtube' → 1920x1080 (YouTube thumbnails, Spotify Video, social video)
- *   - 'square'  → 3000x3000 (Apple Podcasts, Spotify audio, RSS host episode art)
+ *   - 'square'  → 3000x3000 JPEG (Apple Podcasts, Spotify audio, RSS host episode art;
+ *                  lossy encode keeps files under typical 5 MB RSS limits)
  *
  * The OG and YouTube formats share a horizontal "cover left / text right"
  * layout. The square format uses the cover as a full-bleed background with
@@ -493,7 +495,14 @@ function buildTree(args: {
     : buildHorizontalTree(args);
 }
 
-/** Render an episode image as a PNG buffer in the requested format. */
+export type EpisodeArtMime = 'image/png' | 'image/jpeg';
+
+/** MIME for the buffer returned by `renderEpisodeArt` (square is JPEG for smaller RSS uploads). */
+export function getEpisodeArtMime(format: EpisodeArtFormat): EpisodeArtMime {
+  return format === 'square' ? 'image/jpeg' : 'image/png';
+}
+
+/** Render an episode image. OG and YouTube are PNG; square is JPEG after PNG raster pass. */
 export async function renderEpisodeArt(
   episode: Episode,
   format: EpisodeArtFormat = 'og',
@@ -525,7 +534,17 @@ export async function renderEpisodeArt(
     fitTo: { mode: 'width', value: spec.width },
     background: '#070707',
   });
-  return resvg.render().asPng();
+  const png = resvg.render().asPng();
+  if (format !== 'square') return png;
+
+  return sharp(png)
+    .jpeg({
+      quality: 84,
+      mozjpeg: true,
+      chromaSubsampling: '4:2:0',
+      progressive: true,
+    })
+    .toBuffer();
 }
 
 /** Backwards-compatible alias for the existing /og/jaksot/[slug].png endpoint. */

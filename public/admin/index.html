@@ -13,9 +13,9 @@
     <!--
       Custom preview pane for the `episodes` collection.
       Renders the three downloadable thumbnail variants live as the editor types:
-      - Square 3000×3000 (Apple Podcasts / Spotify)
-      - YouTube 1920×1080
-      - Open Graph 1200×630
+      - Square 3000×3000 JPEG (Apple Podcasts / Spotify / RSS size-friendly)
+      - YouTube 1920×1080 PNG
+      - Open Graph 1200×630 PNG
 
       Pulls the RSS-derived cover image and guest directory from static endpoints
       generated at build time:
@@ -48,12 +48,13 @@
         var FORMATS = {
           square: {
             id: 'square',
-            label: 'Neliö (Apple/Spotify)',
+            label: 'Neliö / RSS (JPEG)',
             width: 3000,
             height: 3000,
             previewWidth: 360,
             layout: 'square',
-            filename: function (slug) { return slug + '-square-3000.png'; },
+            filename: function (slug) { return slug + '-square-3000.jpg'; },
+            downloadLabel: 'Lataa JPEG (RSS)',
           },
           youtube: {
             id: 'youtube',
@@ -63,6 +64,7 @@
             previewWidth: 480,
             layout: 'horizontal',
             filename: function (slug) { return slug + '-youtube-1920x1080.png'; },
+            downloadLabel: 'Lataa PNG',
           },
           og: {
             id: 'og',
@@ -72,6 +74,7 @@
             previewWidth: 480,
             layout: 'horizontal',
             filename: function (slug) { return slug + '-og-1200x630.png'; },
+            downloadLabel: 'Lataa PNG',
           },
         };
 
@@ -249,15 +252,21 @@
         }
 
         function downloadCanvas(canvas, filename) {
+          var isJpeg = /\.jpe?g$/i.test(filename);
+          var mime = isJpeg ? 'image/jpeg' : 'image/png';
+          var quality = isJpeg ? 0.86 : undefined;
           if (canvas.toBlob) {
-            canvas.toBlob(function (blob) {
-              if (!blob) {
-                // Likely tainted canvas (cover image not CORS). Fall back to dataURL.
-                triggerDownloadDataUrl(canvas, filename);
-                return;
-              }
-              triggerDownloadBlob(blob, filename);
-            }, 'image/png');
+            canvas.toBlob(
+              function (blob) {
+                if (!blob) {
+                  triggerDownloadDataUrl(canvas, filename);
+                  return;
+                }
+                triggerDownloadBlob(blob, filename);
+              },
+              mime,
+              quality
+            );
           } else {
             triggerDownloadDataUrl(canvas, filename);
           }
@@ -276,7 +285,8 @@
 
         function triggerDownloadDataUrl(canvas, filename) {
           try {
-            var url = canvas.toDataURL('image/png');
+            var isJpeg = /\.jpe?g$/i.test(filename);
+            var url = isJpeg ? canvas.toDataURL('image/jpeg', 0.86) : canvas.toDataURL('image/png');
             var a = document.createElement('a');
             a.href = url;
             a.download = filename;
@@ -286,7 +296,7 @@
           } catch (err) {
             window.alert(
               'Lataus epäonnistui: kansikuva ei sallinut CORS-pyyntöjä. ' +
-              'Käytä julkaisun jälkeen build-aikana renderöityjä PNG:itä osoitteessa /admin/kuvat.'
+              'Käytä julkaisun jälkeen build-aikana renderöityjä kuvia osoitteessa /admin/kuvat.'
             );
           }
         }
@@ -450,7 +460,7 @@
                   cursor: 'pointer',
                   fontSize: '14px',
                 }
-              }, 'Lataa ' + spec.label + ' PNG')
+              }, spec.downloadLabel)
             );
           },
           render: function () {
@@ -524,9 +534,7 @@
                 }
               },
                 'Esikatselu päivittyy reaaliajassa lomakkeen kenttien mukaan. ',
-                'Build-aikana renderöidyt versiot tallennetaan myös osoitteeseen ',
-                h('code', { style: { background: '#2a2a36', padding: '2px 6px', borderRadius: '4px' } }, '/admin/kuvat'),
-                ' julkaisun jälkeen.'
+                'Julkaisun jälkeen /admin/kuvat tarjoaa saman ulkoasun: neliö 3000×3000 JPEG (pieni tiedosto RSS:ää varten), muut PNG.',
               ),
               draft.body
                 ? h('details', {
