@@ -14,9 +14,12 @@
   "dependencies": {
     "@astrojs/netlify": "^7.0.8",
     "@astrojs/sitemap": "^3.7.2",
+    "@fontsource/inter": "^5.2.8",
+    "@resvg/resvg-js": "^2.6.2",
     "astro": "^6.2.2",
     "decap-cms-app": "^3.12.2",
     "fast-xml-parser": "^5.7.2",
-    "marked": "^18.0.3"
+    "marked": "^18.0.3",
+    "satori": "^0.26.0"
   }
 }

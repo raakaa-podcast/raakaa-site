@@ -10,6 +10,7 @@ export type Episode = {
   link?: string;
   duration?: string;
   imageUrl?: string;
+  episodeNumber?: number;
 };
 
 type RssItem = {
@@ -21,6 +22,7 @@ type RssItem = {
   enclosure?: { '@_url'?: string; '@_type'?: string };
   'itunes:duration'?: string;
   'itunes:image'?: { '@_href'?: string };
+  'itunes:episode'?: string | number;
 };
 
 const parser = new XMLParser({
@@ -86,6 +88,15 @@ export async function getEpisodesFromRSS(feedUrl?: string): Promise<Episode[]> {
           return null;
         }
 
+        const rawEpisodeNumber = item['itunes:episode'];
+        let episodeNumber: number | undefined;
+        if (typeof rawEpisodeNumber === 'number' && Number.isFinite(rawEpisodeNumber)) {
+          episodeNumber = rawEpisodeNumber;
+        } else if (typeof rawEpisodeNumber === 'string' && rawEpisodeNumber.trim()) {
+          const parsed = Number.parseInt(rawEpisodeNumber, 10);
+          if (!Number.isNaN(parsed)) episodeNumber = parsed;
+        }
+
         return {
           guid,
           slug,
@@ -96,6 +107,7 @@ export async function getEpisodesFromRSS(feedUrl?: string): Promise<Episode[]> {
           audioUrl,
           duration: item['itunes:duration'],
           imageUrl: item['itunes:image']?.['@_href'] ?? feedImage,
+          episodeNumber,
         };
       })
       .filter((item): item is Episode => item !== null);

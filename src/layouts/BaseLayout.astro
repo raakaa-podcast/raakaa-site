@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import StickyPlayer from '../components/StickyPlayer.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import { getMarkusPersonSchema, getPodcastSeriesSchema } from '../lib/structuredData';
 
 type Props = {
   title?: string;
@@ -11,6 +12,11 @@ type Props = {
   ogType?: 'website' | 'article';
   noindex?: boolean;
   structuredData?: Record<string, unknown> | Record<string, unknown>[];
+  /**
+   * Whether to inject the site-wide PodcastSeries + Person(Markus) JSON-LD.
+   * Defaults to true so every page advertises the canonical podcast & host.
+   */
+  includeSiteSchemas?: boolean;
 };
 
 const {
@@ -20,17 +26,24 @@ const {
   ogType = 'website',
   noindex = false,
   structuredData,
+  includeSiteSchemas = true,
 } = Astro.props;
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://www.raakaa.fi';
 const canonical = new URL(Astro.url.pathname, siteUrl).toString().replace(/\/$/, '') || siteUrl;
 const ogImageUrl = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 
-const structuredDataItems = Array.isArray(structuredData)
+const pageSchemas = Array.isArray(structuredData)
   ? structuredData
   : structuredData
     ? [structuredData]
     : [];
+
+const siteSchemas = includeSiteSchemas
+  ? [getPodcastSeriesSchema(), getMarkusPersonSchema()]
+  : [];
+
+const structuredDataItems = [...siteSchemas, ...pageSchemas];
 ---
 
 <!doctype html>
@@ -68,7 +81,6 @@ const structuredDataItems = Array.isArray(structuredData)
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
 
-    <meta name="keywords" content="podcast, suomalainen podcast, keskustelupodcast, RAAKAA, Markus Suominen, suomi, yhteiskunta, ajankohtaista, haastattelu, suomenkielinen podcast" />
     <meta name="author" content="Markus Suominen" />
     <meta name="publisher" content="RAAKAA Podcast" />
 

@@ -1,92 +1,63 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeButtons from '../../components/EpisodeButtons.astro';
+import EpisodeCard from '../../components/EpisodeCard.astro';
 import YoutubeEmbed from '../../components/YoutubeEmbed.astro';
 import { formatFinnishDate, getEpisodesFromRSS, type Episode } from '../../lib/rss';
 import { getTranscriptHtmlForEpisode } from '../../lib/transcripts';
 import { getPdfTranscriptForEpisode } from '../../lib/litteroinnit';
 import {
-  durationToISO,
   formatDuration,
   getEpisodeMeta,
+  getGuestBySlug,
+  getRelatedEpisodes,
   resolveGuestNames,
 } from '../../lib/episodeMeta';
+import { getPodcastEpisodeSchema } from '../../lib/structuredData';
 
 export async function getStaticPaths() {
   const episodes = await getEpisodesFromRSS();
   return episodes.map((episode) => ({
     params: { slug: episode.slug },
-    props: { episode },
+    props: { episode, allEpisodes: episodes },
   }));
 }
 
-type Props = { episode: Episode };
-const { episode } = Astro.props;
+type Props = { episode: Episode; allEpisodes: Episode[] };
+const { episode, allEpisodes } = Astro.props;
 
 const transcriptHtml = await getTranscriptHtmlForEpisode(episode);
 const pdfTranscript = await getPdfTranscriptForEpisode(episode);
 const cleanDescription = episode.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const meta = getEpisodeMeta(episode);
 const duration = formatDuration(episode.duration);
-const isoDuration = durationToISO(episode.duration);
 const guests = resolveGuestNames(meta.guests ?? []);
 const topics = meta.topics ?? [];
 
-const episodeUrl = `https://www.raakaa.fi/jaksot/${episode.slug}`;
 const heroImage = episode.imageUrl;
 
-const podcastSeriesSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'PodcastSeries',
-  name: 'RAAKAA Podcast',
-  url: 'https://www.raakaa.fi',
-  inLanguage: 'fi',
-  webFeed: 'https://media.rss.com/raakaapodcast/feed.xml',
-  description:
-    'Sitoutumaton, rehellinen ja kiehtova suomalainen keskusteluohjelma, jossa käsitellään yhteiskuntaa, ihmismieltä ja ajankohtaisia aiheita pitkillä keskusteluilla.',
-  publisher: { '@type': 'Person', name: 'Markus Suominen' },
-};
+const episodeSchema = getPodcastEpisodeSchema(episode, meta);
+const ogImagePath = `/og/jaksot/${episode.slug}.png`;
 
-const episodeSchema: Record<string, unknown> = {
-  '@context': 'https://schema.org',
-  '@type': 'PodcastEpisode',
-  name: episode.title,
-  url: episodeUrl,
-  datePublished: episode.publishedAt || undefined,
-  inLanguage: 'fi',
-  description: cleanDescription.slice(0, 500),
-  associatedMedia: {
-    '@type': 'MediaObject',
-    contentUrl: episode.audioUrl,
-    encodingFormat: 'audio/mpeg',
-    ...(isoDuration ? { duration: isoDuration } : {}),
-  },
-  partOfSeries: {
-    '@type': 'PodcastSeries',
-    name: 'RAAKAA Podcast',
-    url: 'https://www.raakaa.fi',
-    webFeed: 'https://media.rss.com/raakaapodcast/feed.xml',
-  },
-};
+const guestProfiles = (meta.guests ?? [])
+  .map((slug) => getGuestBySlug(slug))
+  .filter((g): g is NonNullable<ReturnType<typeof getGuestBySlug>> => g !== null);
 
-if (heroImage) episodeSchema.image = heroImage;
-if (isoDuration) episodeSchema.timeRequired = isoDuration;
-if (topics.length > 0) episodeSchema.keywords = topics.join(', ');
-if (guests.length > 0) {
-  episodeSchema.actor = guests.map((g) => ({
-    '@type': 'Person',
-    name: g.name,
-    url: `https://www.raakaa.fi/vieraat/${g.slug}`,
-  }));
-}
+const relatedEpisodes = getRelatedEpisodes(episode, allEpisodes, 3);
+
+const stripHtml = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const guestExcerpt = (bio: string, max = 180) => {
+  const text = stripHtml(bio);
+  return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
+};
 ---
 
 <BaseLayout
   title={`${episode.title} | RAAKAA Podcast`}
   description={cleanDescription.slice(0, 160)}
-  ogImage={heroImage}
+  ogImage={ogImagePath}
   ogType="article"
-  structuredData={[episodeSchema, podcastSeriesSchema]}
+  structuredData={episodeSchema}
 >
   <div class="page max">
     <nav class="breadcrumb" aria-label="Murupolku">
@@ -148,6 +119,42 @@ if (guests.length > 0) {
       <div class="description" set:html={episode.description}></div>
     </article>
 
+    {guestProfiles.length > 0 && (
+      <section class="guest-cards" aria-labelledby="guest-cards-title">
+        <h2 id="guest-cards-title" class="section-title">Tässä jaksossa</h2>
+        <div class="guest-card-grid">
+          {guestProfiles.map((g) => (
+            <a
+              class="guest-card glass"
+              href={`/vieraat/${g.slug}`}
+              aria-label={`Lue lisää vieraasta ${g.name}`}
+            >
+              {g.image ? (
+                <img
+                  class="guest-photo"
+                  src={g.image}
+                  alt={g.name}
+                  loading="lazy"
+                  decoding="async"
+                  width="320"
+                  height="320"
+                />
+              ) : (
+                <div class="guest-photo placeholder" aria-hidden="true">{g.name.charAt(0)}</div>
+              )}
+              <div class="guest-body">
+                <p class="eyebrow">Vieras</p>
+                <h3 class="guest-name">{g.name}</h3>
+                {g.role && <p class="guest-role">{g.role}</p>}
+                <p class="guest-bio">{guestExcerpt(g.bio)}</p>
+                <span class="guest-cta" aria-hidden="true">Vieraan profiili →</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
     {(transcriptHtml || pdfTranscript) && (
       <section class="transcript glass" aria-labelledby="transcript-title">
         <h2 id="transcript-title" class="section-title">Jakson litterointi</h2>
@@ -172,6 +179,17 @@ if (guests.length > 0) {
             />
           </div>
         ) : null}
+      </section>
+    )}
+
+    {relatedEpisodes.length > 0 && (
+      <section class="related" aria-labelledby="related-title">
+        <h2 id="related-title" class="section-title">Lisää jaksoja</h2>
+        <div class="related-grid">
+          {relatedEpisodes.map((ep) => (
+            <EpisodeCard episode={ep} headingLevel="h3" />
+          ))}
+        </div>
       </section>
     )}
   </div>
@@ -391,5 +409,124 @@ if (guests.length > 0) {
     border: 0;
     border-radius: 10px;
     background: #0e0e0e;
+  }
+
+  .guest-cards {
+    margin-bottom: 1.6rem;
+  }
+
+  .guest-cards .section-title {
+    margin: 0 0 1rem;
+    font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+  }
+
+  .guest-card-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  }
+
+  .guest-card {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1.1rem;
+    padding: 1rem;
+    color: inherit;
+    transition: border-color 180ms ease, transform 220ms ease;
+  }
+
+  .guest-card:hover,
+  .guest-card:focus-visible {
+    border-color: rgba(255, 212, 0, 0.45);
+    transform: translateY(-2px);
+  }
+
+  .guest-photo {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .guest-photo.placeholder {
+    background: rgba(255, 212, 0, 0.12);
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 3rem;
+    display: grid;
+    place-items: center;
+  }
+
+  .guest-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .guest-body .eyebrow {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.66rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+  }
+
+  .guest-name {
+    margin: 0 0 0.3rem;
+    font-size: 1.2rem;
+    line-height: 1.2;
+  }
+
+  .guest-role {
+    margin: 0 0 0.5rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .guest-bio {
+    margin: 0 0 0.8rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .guest-cta {
+    margin-top: auto;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+  }
+
+  .related {
+    margin-bottom: 1.6rem;
+  }
+
+  .related .section-title {
+    margin: 0 0 1rem;
+    font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+  }
+
+  .related-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  @media (max-width: 540px) {
+    .guest-card {
+      grid-template-columns: 1fr;
+    }
+
+    .guest-photo {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+    }
   }
 </style>

@@ -2,11 +2,11 @@
   id="sticky-player"
   class="sticky-player"
   role="region"
-  aria-label="Audiosoitin"
+  aria-label="Äänisoitin"
   transition:persist="raakaa-sticky-player"
 >
   <div class="player-inner glass">
-    <div class="track" aria-live="polite">
+    <div class="track">
       <p class="track-label">Nyt soi</p>
       <p id="track-title" class="track-title">Valitse jakso kuunneltavaksi</p>
     </div>
@@ -29,10 +29,21 @@
         max="100"
         step="0.1"
         value="0"
-        aria-label="Siirry jakson kohtaan"
+        aria-label="Toistopaikka"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
       />
       <span id="time-duration" class="time" aria-label="Jakson kesto">00:00</span>
     </div>
+
+    <p
+      id="playback-announcer"
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></p>
 
     <audio id="audio-element" preload="none"></audio>
   </div>
@@ -45,8 +56,9 @@
   const seek = document.getElementById('seek');
   const timeCurrent = document.getElementById('time-current');
   const timeDuration = document.getElementById('time-duration');
+  const announcer = document.getElementById('playback-announcer');
 
-  if (audio && trackTitle && togglePlay && seek && timeCurrent && timeDuration) {
+  if (audio && trackTitle && togglePlay && seek && timeCurrent && timeDuration && announcer) {
     const formatTime = (seconds) => {
       if (!Number.isFinite(seconds)) return '00:00';
       const mins = Math.floor(seconds / 60);
@@ -105,12 +117,19 @@
     audio.addEventListener('timeupdate', () => {
       const progress = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
       seek.value = String(progress);
+      seek.setAttribute('aria-valuenow', progress.toFixed(1));
       timeCurrent.textContent = formatTime(audio.currentTime);
       timeDuration.textContent = formatTime(audio.duration);
     });
 
+    audio.addEventListener('play', () => {
+      const title = trackTitle.textContent?.trim() || 'tuntematon jakso';
+      announcer.textContent = `Nyt soi: ${title}`;
+    });
+
     audio.addEventListener('ended', () => {
       setPlayingState(false);
+      seek.setAttribute('aria-valuenow', '0');
     });
 
     audio.addEventListener('pause', () => {
@@ -123,3 +142,17 @@
     });
   }
 </script>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

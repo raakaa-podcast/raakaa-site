@@ -1,10 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SocialIcons from '../components/SocialIcons.astro';
+import { PERSON_ID } from '../lib/structuredData';
 
 const personSchema = {
   '@context': 'https://schema.org',
   '@type': 'Person',
+  '@id': PERSON_ID,
   name: 'Markus Suominen',
   jobTitle: 'Podcast-juontaja',
   url: 'https://www.raakaa.fi/markus',

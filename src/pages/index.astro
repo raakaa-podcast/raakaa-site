@@ -30,29 +30,6 @@ const faqItems = [
   },
 ];
 
-const podcastSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'PodcastSeries',
-  name: 'RAAKAA Podcast',
-  url: 'https://www.raakaa.fi',
-  inLanguage: 'fi',
-  description:
-    'Sitoutumaton, rehellinen ja kiehtova suomalainen keskusteluohjelma, jossa käsitellään yhteiskuntaa, ihmismieltä ja ajankohtaisia aiheita pitkillä keskusteluilla.',
-  publisher: {
-    '@type': 'Person',
-    name: 'Markus Suominen',
-  },
-  webFeed: 'https://media.rss.com/raakaapodcast/feed.xml',
-  sameAs: [
-    'https://www.youtube.com/@RaakaaPodcast',
-    'https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY',
-    'https://podcasts.apple.com/fi/podcast/raakaa/id1896272431',
-    'https://rss.com/podcasts/raakaapodcast/',
-    'https://www.instagram.com/raakaapodcast',
-    'https://x.com/raakaapodcast',
-  ],
-};
-
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -84,7 +61,7 @@ const orgSchema = {
 <BaseLayout
   title="RAAKAA Podcast – suomalainen keskustelupodcast | Markus Suominen"
   description="RAAKAA on rehellinen ja kiehtova suomalainen keskustelupodcast. Pitkät keskustelut yhteiskunnasta, ihmismielestä ja ajankohtaisista aiheista. Kuuntele Spotifyssa, Apple Podcastsissa, YouTubessa ja muilla 22 alustalla."
-  structuredData={[podcastSchema, faqSchema, orgSchema]}
+  structuredData={[faqSchema, orgSchema]}
 >
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-bg" aria-hidden="true">
