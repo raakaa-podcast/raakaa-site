@@ -87,15 +87,18 @@ const isCurrent = (link: LinkDef): boolean => {
     ))}
   </nav>
 
-  <div class="mobile-socials">
+  <div class="mobile-cta-block">
+    <p class="mobile-cta-label">Kuuntele</p>
+    <ListenMenu variant="mobile" />
+  </div>
+
+  <div class="mobile-socials" aria-label="Sosiaalinen media">
     <a href="https://www.instagram.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="Instagram"><SocialIcons name="instagram" size={22} /></a>
     <a href="https://www.youtube.com/@RAAKAA-Podcast" target="_blank" rel="noreferrer" aria-label="YouTube"><SocialIcons name="youtube" size={22} /></a>
     <a href="https://x.com/raakaapodcast" target="_blank" rel="noreferrer" aria-label="X"><SocialIcons name="x" size={22} /></a>
     <a href="https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY" target="_blank" rel="noreferrer" aria-label="Spotify"><SocialIcons name="spotify" size={22} /></a>
     <a href="https://podcasts.apple.com/fi/podcast/raakaa/id1896272431" target="_blank" rel="noreferrer" aria-label="Apple Podcasts"><SocialIcons name="apple" size={22} /></a>
   </div>
-
-  <ListenMenu variant="mobile" />
 </div>
 
 <script is:inline>
@@ -117,6 +120,10 @@ const isCurrent = (link: LinkDef): boolean => {
     });
 
     menu.querySelectorAll('[data-mobile-link]').forEach(function (link) {
+      link.addEventListener('click', function () { setOpen(false); });
+    });
+
+    menu.querySelectorAll('.listen-mobile a, .mobile-socials a').forEach(function (link) {
       link.addEventListener('click', function () { setOpen(false); });
     });
 
@@ -321,11 +328,31 @@ const isCurrent = (link: LinkDef): boolean => {
     color: var(--accent);
   }
 
+  .mobile-cta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .mobile-cta-label {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
   .mobile-socials {
     display: flex;
+    flex-wrap: wrap;
     gap: 1.4rem;
     color: var(--muted);
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .mobile-socials a {
@@ -341,6 +368,7 @@ const isCurrent = (link: LinkDef): boolean => {
     overflow: hidden;
   }
 
+  /* Mobiilissa piilota työpöydän kuuntelurivi — kuuntele CTA:t vain laatikossa (ListenMenu on lapsikomponentti, käytä :global) */
   @media (max-width: 900px) {
     .primary-nav {
       display: none;
@@ -348,8 +376,8 @@ const isCurrent = (link: LinkDef): boolean => {
     .header-socials {
       display: none;
     }
-    .listen-header {
-      display: none;
+    :global(.listen-header) {
+      display: none !important;
     }
     .hamburger {
       display: inline-flex;
