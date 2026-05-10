@@ -1,14 +1,16 @@
-# Local fallback admin — Decap CMS is the primary content interface for the live site (/admin).
-# Keep field schemas in sync manually if episode-meta.json structure changes.
+# RAAKAA Podcast — Decap CMS config
 #
-# FIELD INVENTORY AUDIT (/jaksot data layer):
-# - src/data/episode-meta.json (array items): episodeSlug:string, episodeGuid:string, guests:string[], topics:string[], summary:string, youtubeUrl:string
-# - src/data/guests.json (array items): slug:string, name:string, role:string, bio:string, image:string, links:[{label:string,url:string}]
-# - src/content/transcripts/*.md frontmatter: title:string, episodeGuid?:string, episodeSlug?:string, publishDate?:string, excerpt?:string + markdown body
-# - /jaksot/[slug] consumes RSS fields (title, slug, description, publishedAt, duration, audioUrl, imageUrl), plus:
-#   - episode-meta: guests[], topics[], summary, youtubeUrl
-#   - guests.json via guests[] indirection (guest names/links on page)
-#   - transcripts content collection for transcript body
+# Editing model:
+# - One markdown file per episode at src/content/episodes/<slug>.md.
+#   Frontmatter holds manual metadata; markdown body holds the transcript.
+# - Guests live in a separate JSON file (src/data/guests.json) so they can be
+#   referenced by multiple episodes via Decap's `relation` widget.
+# - RSS-derived fields (audio URL, publish date as it appears in podcast apps,
+#   default cover) come from RSS.com at build time and are NOT editable here.
+#
+# Custom preview pane: public/admin/index.html registers a live preview that
+# renders the three downloadable thumbnail variants (square 3000×3000,
+# YouTube 1920×1080, OG 1200×630) as you type — no save/build required.
 
 backend:
   name: git-gateway
@@ -41,94 +43,123 @@ public_folder: "/uploads"
 
 collections:
   - name: "episodes"
-    label: "Episodes"
-    files:
-      - label: "Episode Metadata"
-        name: "episode_meta"
-        file: "src/data/episode-meta.json"
-        format: "json"
-        fields:
-          - label: "Episodes"
-            name: "episodes"
-            widget: "list"
-            summary: "{{fields.episodeSlug}}"
-            fields:
-              - label: "Slug"
-                name: "episodeSlug"
-                widget: "string"
-                required: true
-                pattern: ['^[a-z0-9-]+$', "Use lowercase letters, numbers, and hyphens."]
-              - label: "Short description / summary"
-                name: "summary"
-                widget: "text"
-                required: false
-              - label: "YouTube URL"
-                name: "youtubeUrl"
-                widget: "string"
-                required: false
-                hint: "Accepts any YouTube URL format — youtu.be, watch?v=, or /embed/"
-              - label: "Tags"
-                name: "topics"
-                widget: "list"
-                required: false
-                field:
-                  label: "Tag"
-                  name: "topic"
-                  widget: "string"
-              - label: "Episode GUID (optional)"
-                name: "episodeGuid"
-                widget: "string"
-                required: false
-              - label: "Guest slugs"
-                name: "guests"
-                widget: "list"
-                required: false
-                field:
-                  label: "Guest slug"
-                  name: "guestSlug"
-                  widget: "string"
-
-  - name: "supporting_data"
-    label: "Supporting Data"
-    files:
-      - label: "Guests"
-        name: "guests"
-        file: "src/data/guests.json"
-        format: "json"
-        fields:
-          - label: "Guests"
-            name: "guests"
-            widget: "list"
-            summary: "{{fields.slug}}"
-            fields:
-              - { label: "Slug", name: "slug", widget: "string", required: true }
-              - { label: "Name", name: "name", widget: "string", required: true }
-              - { label: "Guest Title / Role", name: "role", widget: "string", required: false }
-              - { label: "Guest Bio", name: "bio", widget: "text", required: false }
-              - { label: "Guest Photo URL", name: "image", widget: "string", required: false }
-              - label: "Links"
-                name: "links"
-                widget: "list"
-                required: false
-                fields:
-                  - { label: "Label", name: "label", widget: "string" }
-                  - { label: "URL", name: "url", widget: "string" }
-  - name: "transcripts"
-    label: "Litteroinnit"
-    folder: "src/content/transcripts"
+    label: "Jaksot"
+    label_singular: "Jakso"
+    description: |
+      Yksi tiedosto per jakso. Esikatselupaneeli oikealla renderöi reaaliajassa
+      neliön, YouTuben (16:9) ja OG-kansikuvat — voit ladata ne suoraan ilman
+      julkaisua. Julkaisun jälkeen pre-renderoidut PNG:t löytyvät myös
+      osoitteesta /admin/kuvat.
+    folder: "src/content/episodes"
     create: true
-    slug: "{{slug}}"
+    slug: "{{fields.episodeSlug}}"
     extension: "md"
     format: "frontmatter"
+    identifier_field: "episodeSlug"
+    summary: "{{title}} — {{episodeSlug}}"
+    sortable_fields: ["publishDate", "title", "episodeSlug"]
+    view_filters:
+      - label: "Julkaistut"
+        field: "publishDate"
+        pattern: "20"
     fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Episode GUID", name: "episodeGuid", widget: "string", required: false }
-      - { label: "Episode slug", name: "episodeSlug", widget: "string", required: false }
-      - label: "Publish date"
+      - label: "Otsikko"
+        name: "title"
+        widget: "string"
+        hint: "Esim. \"RAAKAA #3 - Vieras Etunimi Sukunimi\". Käytetään esikatselun headerissä."
+      - label: "Episode slug"
+        name: "episodeSlug"
+        widget: "string"
+        required: true
+        pattern: ['^[a-z0-9-]+$', "Käytä vain pieniä kirjaimia, numeroita ja viivoja."]
+        hint: "Tiedostonimen ja URL:n pohja. Esim. raakaa-3-etunimi-sukunimi."
+      - label: "Episode GUID"
+        name: "episodeGuid"
+        widget: "string"
+        required: false
+        hint: "RSS-syötteen <guid>-arvo. Linkittää jakson Decap-metadatan oikeaan RSS-jaksoon."
+      - label: "Julkaisupäivä"
         name: "publishDate"
         widget: "datetime"
         required: false
         date_format: "YYYY-MM-DD"
         time_format: false
-      - { label: "Excerpt", name: "excerpt", widget: "text", required: false }
-      - { label: "Litterointi", name: "body", widget: "markdown" }
+        hint: "Vain dokumentointia varten — sivu käyttää RSS:n <pubDate>-arvoa."
+      - label: "Lyhyt yhteenveto"
+        name: "summary"
+        widget: "text"
+        required: false
+        hint: "1-2 lausetta. Näytetään jaksokorteissa ja kansikuvissa."
+      - label: "Excerpt"
+        name: "excerpt"
+        widget: "text"
+        required: false
+        hint: "Vaihtoehtoinen lyhyt kuvaus arkistoja varten. Voi jättää tyhjäksi."
+      - label: "Aiheet / tagit"
+        name: "topics"
+        widget: "list"
+        required: false
+        default: []
+        field:
+          label: "Aihe"
+          name: "topic"
+          widget: "string"
+        hint: "Esim. yhteiskunta, ilmasto, mielenterveys. Käytetään sisäisten linkkien generointiin."
+      - label: "Vieraat"
+        name: "guests"
+        widget: "relation"
+        collection: "supporting_data"
+        file: "guests"
+        value_field: "guests.*.slug"
+        search_fields: ["guests.*.name", "guests.*.slug", "guests.*.role"]
+        display_fields: ["guests.*.name"]
+        multiple: true
+        required: false
+        min: 0
+        hint: "Valitse vieraat olemassa olevasta listasta. Lisää uusia kohdassa Tukidata → Vieraat."
+      - label: "YouTube URL"
+        name: "youtubeUrl"
+        widget: "string"
+        required: false
+        hint: "Mikä tahansa YouTube-osoite (youtu.be, watch?v=, /embed/)."
+      - label: "Mukautettu kansikuva (URL)"
+        name: "customCoverImage"
+        widget: "string"
+        required: false
+        hint: "Valinnainen. Korvaa RSS-syötteen kansikuvan, kun haluat eri taustakuvan."
+      - label: "PDF-litterointi (URL)"
+        name: "pdfUrl"
+        widget: "string"
+        required: false
+        hint: "Jos jakson litterointi on PDF eikä markdown-tekstinä, anna URL — esim. /uploads/litterointi.pdf."
+      - label: "Litterointi"
+        name: "body"
+        widget: "markdown"
+        required: false
+        hint: "Jakson litterointi markdownina. Tukee otsikoita, listoja, linkkejä ja kursivointia."
+
+  - name: "supporting_data"
+    label: "Tukidata"
+    files:
+      - label: "Vieraat"
+        name: "guests"
+        file: "src/data/guests.json"
+        format: "json"
+        fields:
+          - label: "Vieraat"
+            name: "guests"
+            widget: "list"
+            summary: "{{fields.name}} ({{fields.slug}})"
+            fields:
+              - { label: "Slug", name: "slug", widget: "string", required: true, pattern: ['^[a-z0-9-]+$', "Käytä vain pieniä kirjaimia, numeroita ja viivoja."] }
+              - { label: "Nimi", name: "name", widget: "string", required: true }
+              - { label: "Rooli / titteli", name: "role", widget: "string", required: false }
+              - { label: "Bio", name: "bio", widget: "text", required: false }
+              - { label: "Kuva-URL", name: "image", widget: "string", required: false }
+              - label: "Linkit"
+                name: "links"
+                widget: "list"
+                required: false
+                fields:
+                  - { label: "Otsikko", name: "label", widget: "string" }
+                  - { label: "URL", name: "url", widget: "string" }

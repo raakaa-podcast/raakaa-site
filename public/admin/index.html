@@ -1,11 +1,563 @@
 <!DOCTYPE html>
-<html>
+<html lang="fi">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Podcast Admin</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <title>RAAKAA Podcast — Hallinta</title>
   </head>
   <body>
+    <!-- Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+    <!--
+      Custom preview pane for the `episodes` collection.
+      Renders the three downloadable thumbnail variants live as the editor types:
+      - Square 3000×3000 (Apple Podcasts / Spotify)
+      - YouTube 1920×1080
+      - Open Graph 1200×630
+
+      Pulls the RSS-derived cover image and guest directory from static endpoints
+      generated at build time:
+      - /admin/data/episodes.json
+      - /admin/data/guests.json
+
+      Designed to mirror the satori-rendered server-side output (gradient + brand
+      stripe + RAAKAA wordmark text) so what you see matches what's published.
+    -->
+    <script>
+      (function () {
+        if (typeof window === 'undefined' || !window.CMS) {
+          console.warn('[raakaa-admin] Decap CMS not found on window — preview pane skipped.');
+          return;
+        }
+        var CMS = window.CMS;
+        var h = window.h;
+        var createClass = window.createClass;
+        if (!h || !createClass) {
+          console.warn('[raakaa-admin] window.h/createClass missing; Decap version mismatch?');
+          return;
+        }
+
+        var BRAND_TEXT = 'RAAKAA PODCAST';
+        var BG_GRAD = ['#070707', '#141414', '#1f1a05'];
+        var ACCENT = '#ffd400';
+        var FG = '#f7f7f7';
+        var FG_MUTED = '#bcbcbc';
+
+        var FORMATS = {
+          square: {
+            id: 'square',
+            label: 'Neliö (Apple/Spotify)',
+            width: 3000,
+            height: 3000,
+            previewWidth: 360,
+            layout: 'square',
+            filename: function (slug) { return slug + '-square-3000.png'; },
+          },
+          youtube: {
+            id: 'youtube',
+            label: 'YouTube 16:9',
+            width: 1920,
+            height: 1080,
+            previewWidth: 480,
+            layout: 'horizontal',
+            filename: function (slug) { return slug + '-youtube-1920x1080.png'; },
+          },
+          og: {
+            id: 'og',
+            label: 'Open Graph (some)',
+            width: 1200,
+            height: 630,
+            previewWidth: 480,
+            layout: 'horizontal',
+            filename: function (slug) { return slug + '-og-1200x630.png'; },
+          },
+        };
+
+        var imageCache = {};
+        function loadImage(url) {
+          if (!url) return Promise.resolve(null);
+          if (imageCache[url]) return imageCache[url];
+          imageCache[url] = new Promise(function (resolve) {
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function () { resolve(img); };
+            img.onerror = function () { resolve(null); };
+            img.src = url;
+          });
+          return imageCache[url];
+        }
+
+        function roundRect(ctx, x, y, w, hgt, r) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(x + w - r, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+          ctx.lineTo(x + w, y + hgt - r);
+          ctx.quadraticCurveTo(x + w, y + hgt, x + w - r, y + hgt);
+          ctx.lineTo(x + r, y + hgt);
+          ctx.quadraticCurveTo(x, y + hgt, x, y + hgt - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+          ctx.closePath();
+        }
+
+        function wrapLines(ctx, text, maxWidth, maxLines) {
+          var words = String(text || '').trim().split(/\s+/);
+          if (!words[0]) return [];
+          var lines = [];
+          var line = '';
+          for (var i = 0; i < words.length; i++) {
+            var test = line ? line + ' ' + words[i] : words[i];
+            if (ctx.measureText(test).width > maxWidth && line) {
+              lines.push(line);
+              line = words[i];
+            } else {
+              line = test;
+            }
+          }
+          if (line) lines.push(line);
+          if (lines.length > maxLines) {
+            var last = lines[maxLines - 1];
+            while (last && ctx.measureText(last + '…').width > maxWidth) {
+              last = last.slice(0, -1);
+            }
+            lines = lines.slice(0, maxLines);
+            lines[maxLines - 1] = last + '…';
+          }
+          return lines;
+        }
+
+        function fillBackground(ctx, w, hgt, cover, layout) {
+          if (layout === 'square' && cover) {
+            ctx.drawImage(cover, 0, 0, w, hgt);
+            var blur = ctx.createLinearGradient(0, hgt * 0.2, 0, hgt);
+            blur.addColorStop(0, 'rgba(7,7,7,0.05)');
+            blur.addColorStop(0.6, 'rgba(7,7,7,0.55)');
+            blur.addColorStop(1, 'rgba(7,7,7,0.92)');
+            ctx.fillStyle = blur;
+            ctx.fillRect(0, 0, w, hgt);
+            return;
+          }
+          var grad = ctx.createLinearGradient(0, 0, w, hgt);
+          grad.addColorStop(0, BG_GRAD[0]);
+          grad.addColorStop(0.6, BG_GRAD[1]);
+          grad.addColorStop(1, BG_GRAD[2]);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, hgt);
+        }
+
+        function drawHorizontal(ctx, spec, data, cover) {
+          var w = spec.width;
+          var hgt = spec.height;
+          var pad = Math.round(hgt * 0.07);
+          fillBackground(ctx, w, hgt, null, 'horizontal');
+
+          if (cover) {
+            var coverSize = hgt - pad * 2;
+            var coverX = pad;
+            var coverY = pad;
+            ctx.save();
+            var radius = Math.round(coverSize * 0.08);
+            roundRect(ctx, coverX, coverY, coverSize, coverSize, radius);
+            ctx.clip();
+            var s = Math.max(coverSize / cover.width, coverSize / cover.height);
+            var dw = cover.width * s;
+            var dhgt = cover.height * s;
+            ctx.drawImage(cover, coverX + (coverSize - dw) / 2, coverY + (coverSize - dhgt) / 2, dw, dhgt);
+            ctx.restore();
+          }
+
+          var textX = cover ? pad + (hgt - pad * 2) + pad : pad;
+          var textWidth = w - textX - pad;
+
+          var stripeW = Math.round(w * 0.005);
+          ctx.fillStyle = ACCENT;
+          ctx.fillRect(textX - Math.round(pad * 0.4), pad, stripeW, hgt - pad * 2);
+
+          var brandSize = Math.round(hgt * 0.045);
+          var titleSize = Math.round(hgt * 0.075);
+          var guestSize = Math.round(hgt * 0.04);
+
+          ctx.fillStyle = ACCENT;
+          ctx.font = '700 ' + brandSize + 'px Inter, system-ui, sans-serif';
+          ctx.textBaseline = 'top';
+          ctx.fillText(BRAND_TEXT, textX, pad);
+
+          ctx.fillStyle = FG;
+          ctx.font = '800 ' + titleSize + 'px Inter, system-ui, sans-serif';
+          var titleLines = wrapLines(ctx, data.title || '(otsikko)', textWidth, 3);
+          var titleY = pad + brandSize + Math.round(hgt * 0.06);
+          titleLines.forEach(function (line, idx) {
+            ctx.fillText(line, textX, titleY + idx * Math.round(titleSize * 1.12));
+          });
+
+          var guestY = titleY + titleLines.length * Math.round(titleSize * 1.12) + Math.round(hgt * 0.04);
+          if (data.guestLine) {
+            ctx.fillStyle = FG_MUTED;
+            ctx.font = '500 ' + guestSize + 'px Inter, system-ui, sans-serif';
+            ctx.fillText('Vieras: ' + data.guestLine, textX, guestY);
+          }
+        }
+
+        function drawSquare(ctx, spec, data, cover) {
+          var w = spec.width;
+          var hgt = spec.height;
+          var pad = Math.round(w * 0.07);
+          fillBackground(ctx, w, hgt, cover, 'square');
+
+          var brandSize = Math.round(w * 0.04);
+          var titleSize = Math.round(w * 0.075);
+          var guestSize = Math.round(w * 0.035);
+
+          ctx.fillStyle = ACCENT;
+          ctx.font = '700 ' + brandSize + 'px Inter, system-ui, sans-serif';
+          ctx.textBaseline = 'top';
+          ctx.fillText(BRAND_TEXT, pad, pad);
+
+          ctx.fillStyle = ACCENT;
+          ctx.fillRect(pad, pad + brandSize + Math.round(w * 0.015), Math.round(w * 0.12), Math.round(w * 0.008));
+
+          ctx.fillStyle = FG;
+          ctx.font = '800 ' + titleSize + 'px Inter, system-ui, sans-serif';
+          var titleLines = wrapLines(ctx, data.title || '(otsikko)', w - pad * 2, 3);
+          var titleY = hgt - pad - titleLines.length * Math.round(titleSize * 1.12) - (data.guestLine ? Math.round(guestSize * 1.6) : 0);
+          titleLines.forEach(function (line, idx) {
+            ctx.fillText(line, pad, titleY + idx * Math.round(titleSize * 1.12));
+          });
+
+          if (data.guestLine) {
+            ctx.fillStyle = FG_MUTED;
+            ctx.font = '500 ' + guestSize + 'px Inter, system-ui, sans-serif';
+            ctx.fillText('Vieras: ' + data.guestLine, pad, titleY + titleLines.length * Math.round(titleSize * 1.12) + Math.round(guestSize * 0.4));
+          }
+        }
+
+        function renderToCanvas(canvas, format, data) {
+          var spec = FORMATS[format];
+          var dpr = 1;
+          canvas.width = spec.width;
+          canvas.height = spec.height;
+          var ctx = canvas.getContext('2d');
+          ctx.imageSmoothingQuality = 'high';
+          return loadImage(data.coverUrl).then(function (cover) {
+            if (spec.layout === 'square') drawSquare(ctx, spec, data, cover);
+            else drawHorizontal(ctx, spec, data, cover);
+            return cover;
+          });
+        }
+
+        function downloadCanvas(canvas, filename) {
+          if (canvas.toBlob) {
+            canvas.toBlob(function (blob) {
+              if (!blob) {
+                // Likely tainted canvas (cover image not CORS). Fall back to dataURL.
+                triggerDownloadDataUrl(canvas, filename);
+                return;
+              }
+              triggerDownloadBlob(blob, filename);
+            }, 'image/png');
+          } else {
+            triggerDownloadDataUrl(canvas, filename);
+          }
+        }
+
+        function triggerDownloadBlob(blob, filename) {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+        }
+
+        function triggerDownloadDataUrl(canvas, filename) {
+          try {
+            var url = canvas.toDataURL('image/png');
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          } catch (err) {
+            window.alert(
+              'Lataus epäonnistui: kansikuva ei sallinut CORS-pyyntöjä. ' +
+              'Käytä julkaisun jälkeen build-aikana renderöityjä PNG:itä osoitteessa /admin/kuvat.'
+            );
+          }
+        }
+
+        function toJS(value) {
+          if (value == null) return value;
+          if (value.toJS && typeof value.toJS === 'function') return value.toJS();
+          return value;
+        }
+
+        function readDraft(entry) {
+          var d = entry.get('data');
+          if (!d) return {};
+          var topics = toJS(d.get('topics')) || [];
+          var guests = toJS(d.get('guests')) || [];
+          return {
+            title: d.get('title') || '',
+            episodeSlug: d.get('episodeSlug') || '',
+            episodeGuid: d.get('episodeGuid') || '',
+            summary: d.get('summary') || '',
+            excerpt: d.get('excerpt') || '',
+            youtubeUrl: d.get('youtubeUrl') || '',
+            customCoverImage: d.get('customCoverImage') || '',
+            pdfUrl: d.get('pdfUrl') || '',
+            topics: Array.isArray(topics) ? topics : [],
+            guests: Array.isArray(guests) ? guests : [],
+            body: d.get('body') || '',
+          };
+        }
+
+        var EpisodePreview = createClass({
+          getInitialState: function () {
+            return { rssEpisodes: [], guestDir: [], coverNote: null };
+          },
+          componentDidMount: function () {
+            var self = this;
+            this._destroyed = false;
+            Promise.all([
+              fetch('/admin/data/episodes.json').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+              fetch('/admin/data/guests.json').then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+            ]).then(function (out) {
+              if (self._destroyed) return;
+              self.setState({ rssEpisodes: out[0] || [], guestDir: out[1] || [] }, function () {
+                self.scheduleRedraw();
+              });
+            });
+            this.canvases = {};
+            this._draw = this.draw.bind(this);
+          },
+          componentWillUnmount: function () { this._destroyed = true; },
+          componentDidUpdate: function () { this.scheduleRedraw(); },
+          scheduleRedraw: function () {
+            if (this._raf) cancelAnimationFrame(this._raf);
+            if (this._timer) clearTimeout(this._timer);
+            var self = this;
+            this._timer = setTimeout(function () {
+              self._raf = requestAnimationFrame(self._draw);
+            }, 120);
+          },
+          resolveCoverUrl: function (draft) {
+            if (draft.customCoverImage) return draft.customCoverImage;
+            var rss = this.state.rssEpisodes.find(function (e) {
+              return e.slug === draft.episodeSlug || (draft.episodeGuid && e.guid === draft.episodeGuid);
+            });
+            return rss && rss.imageUrl ? rss.imageUrl : null;
+          },
+          resolveTitle: function (draft) {
+            if (draft.title) return draft.title;
+            var rss = this.state.rssEpisodes.find(function (e) {
+              return e.slug === draft.episodeSlug || (draft.episodeGuid && e.guid === draft.episodeGuid);
+            });
+            return rss ? rss.title : '';
+          },
+          resolveGuests: function (draft) {
+            var dir = this.state.guestDir;
+            return (draft.guests || []).map(function (slug) {
+              var g = dir.find(function (x) { return x.slug === slug; });
+              return g ? g.name : slug;
+            });
+          },
+          draw: function () {
+            var entry = this.props.entry;
+            if (!entry) return;
+            var draft = readDraft(entry);
+            var coverUrl = this.resolveCoverUrl(draft);
+            var title = this.resolveTitle(draft);
+            var guests = this.resolveGuests(draft);
+            var data = { title: title, guestLine: guests.join(' & '), coverUrl: coverUrl };
+            var self = this;
+            ['square', 'youtube', 'og'].forEach(function (fmt) {
+              var canvas = self.canvases[fmt];
+              if (canvas) {
+                renderToCanvas(canvas, fmt, data).catch(function () {});
+              }
+            });
+            this.setState({
+              coverNote: coverUrl
+                ? null
+                : 'Kansikuvaa ei ole vielä saatavilla — täytä episodeSlug/episodeGuid tai customCoverImage.'
+            });
+          },
+          handleDownload: function (fmt) {
+            var canvas = this.canvases[fmt];
+            if (!canvas) return;
+            var slug = readDraft(this.props.entry).episodeSlug || 'jakso';
+            downloadCanvas(canvas, FORMATS[fmt].filename(slug));
+          },
+          renderThumb: function (fmt) {
+            var self = this;
+            var spec = FORMATS[fmt];
+            var ratio = spec.height / spec.width;
+            var displayW = spec.previewWidth;
+            var displayH = Math.round(displayW * ratio);
+            return h(
+              'div',
+              {
+                key: fmt,
+                style: {
+                  background: '#0e0e14',
+                  border: '1px solid #2a2a36',
+                  borderRadius: '12px',
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }
+              },
+              h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' } },
+                h('strong', { style: { color: '#f7f7f7', fontSize: '14px' } }, spec.label),
+                h('span', { style: { color: '#7a7a86', fontSize: '12px' } }, spec.width + '×' + spec.height)
+              ),
+              h('div', {
+                style: {
+                  width: displayW + 'px',
+                  height: displayH + 'px',
+                  background: '#000',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  alignSelf: 'center',
+                }
+              },
+                h('canvas', {
+                  ref: function (c) { if (c) self.canvases[fmt] = c; },
+                  style: {
+                    width: '100%',
+                    height: '100%',
+                    display: 'block',
+                  }
+                })
+              ),
+              h('button', {
+                type: 'button',
+                onClick: function () { self.handleDownload(fmt); },
+                style: {
+                  background: ACCENT,
+                  color: '#0a0a0a',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }
+              }, 'Lataa ' + spec.label + ' PNG')
+            );
+          },
+          render: function () {
+            var draft = readDraft(this.props.entry);
+            var title = this.resolveTitle(draft);
+            var guests = this.resolveGuests(draft);
+            return h('div', {
+              style: {
+                background: '#15151c',
+                color: '#f7f7f7',
+                padding: '20px',
+                fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+                minHeight: '100%',
+              }
+            },
+              h('div', {
+                style: {
+                  marginBottom: '20px',
+                  paddingBottom: '16px',
+                  borderBottom: '1px solid #2a2a36',
+                }
+              },
+                h('h1', { style: { margin: '0 0 8px', fontSize: '20px' } }, title || '(uusi jakso)'),
+                h('div', {
+                  style: {
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px 16px',
+                    fontSize: '13px',
+                    color: '#bcbcbc',
+                  }
+                },
+                  h('span', null, 'Slug: ' + (draft.episodeSlug || '—')),
+                  h('span', null, 'GUID: ' + (draft.episodeGuid || '—')),
+                  h('span', null, 'Vieraat: ' + (guests.join(', ') || '—')),
+                  h('span', null, 'Aiheet: ' + (draft.topics.join(', ') || '—'))
+                ),
+                draft.summary
+                  ? h('p', { style: { marginTop: '12px', lineHeight: 1.55, color: '#e0e0e8', fontSize: '14px', maxWidth: '60ch' } }, draft.summary)
+                  : null
+              ),
+              this.state.coverNote
+                ? h('div', {
+                    style: {
+                      background: '#3a2f12',
+                      color: '#ffd680',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      fontSize: '13px',
+                      marginBottom: '16px',
+                    }
+                  }, this.state.coverNote)
+                : null,
+              h('div', {
+                style: {
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '16px',
+                }
+              },
+                this.renderThumb('square'),
+                this.renderThumb('youtube'),
+                this.renderThumb('og')
+              ),
+              h('p', {
+                style: {
+                  marginTop: '20px',
+                  fontSize: '12px',
+                  color: '#7a7a86',
+                  lineHeight: 1.5,
+                }
+              },
+                'Esikatselu päivittyy reaaliajassa lomakkeen kenttien mukaan. ',
+                'Build-aikana renderöidyt versiot tallennetaan myös osoitteeseen ',
+                h('code', { style: { background: '#2a2a36', padding: '2px 6px', borderRadius: '4px' } }, '/admin/kuvat'),
+                ' julkaisun jälkeen.'
+              ),
+              draft.body
+                ? h('details', {
+                    style: {
+                      marginTop: '24px',
+                      background: '#0e0e14',
+                      border: '1px solid #2a2a36',
+                      borderRadius: '12px',
+                      padding: '14px 18px',
+                    }
+                  },
+                    h('summary', { style: { cursor: 'pointer', color: ACCENT, fontWeight: 600 } }, 'Litteroinnin esikatselu'),
+                    h('pre', {
+                      style: {
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        marginTop: '12px',
+                        color: '#e0e0e8',
+                        fontFamily: 'inherit',
+                        fontSize: '14px',
+                        lineHeight: 1.55,
+                      }
+                    }, draft.body)
+                  )
+                : null
+            );
+          },
+        });
+
+        CMS.registerPreviewTemplate('episodes', EpisodePreview);
+      })();
+    </script>
   </body>
 </html>

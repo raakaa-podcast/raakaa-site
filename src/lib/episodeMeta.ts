@@ -1,4 +1,6 @@
-import episodeMetaJson from '../data/episode-meta.json';
+import fs from 'node:fs';
+import path from 'node:path';
+import matter from 'gray-matter';
 import guestsJson from '../data/guests.json';
 import type { Episode } from './rss';
 
@@ -9,6 +11,15 @@ export type EpisodeMeta = {
   topics?: string[];
   summary?: string;
   youtubeUrl?: string;
+};
+
+export type EpisodeRecord = EpisodeMeta & {
+  title?: string;
+  publishDate?: string;
+  excerpt?: string;
+  customCoverImage?: string;
+  pdfUrl?: string;
+  body: string;
 };
 
 export type GuestLink = { label: string; url: string };
@@ -22,19 +33,94 @@ export type Guest = {
   links?: GuestLink[];
 };
 
-const metaSource = episodeMetaJson as EpisodeMeta[] | { episodes?: EpisodeMeta[] };
+const EPISODES_DIR = path.join(process.cwd(), 'src', 'content', 'episodes');
+
+const recordsBySlug = new Map<string, EpisodeRecord>();
+const recordsByGuid = new Map<string, EpisodeRecord>();
+
+/**
+ * Load all episode markdown files at module init. This is build-time only;
+ * the cost is paid once and every subsequent `getEpisodeMeta(...)` call is
+ * a plain Map lookup — keeping the public API synchronous so existing
+ * callers (EpisodeCard, [slug].astro, ogImage.ts, etc.) don't need to be
+ * refactored to async.
+ */
+function loadEpisodes(): void {
+  let files: string[] = [];
+  try {
+    files = fs.readdirSync(EPISODES_DIR).filter((f) => f.endsWith('.md'));
+  } catch {
+    // Episodes folder may not exist on first run / clean builds.
+    return;
+  }
+
+  for (const file of files) {
+    try {
+      const raw = fs.readFileSync(path.join(EPISODES_DIR, file), 'utf8');
+      const { data, content } = matter(raw);
+      const slugFromFile = file.replace(/\.md$/, '');
+      const record: EpisodeRecord = {
+        episodeSlug: (data.episodeSlug as string | undefined) ?? slugFromFile,
+        episodeGuid: data.episodeGuid as string | undefined,
+        guests: Array.isArray(data.guests) ? (data.guests as string[]) : [],
+        topics: Array.isArray(data.topics) ? (data.topics as string[]) : [],
+        summary: data.summary as string | undefined,
+        youtubeUrl: data.youtubeUrl as string | undefined,
+        title: data.title as string | undefined,
+        publishDate: typeof data.publishDate === 'string'
+          ? data.publishDate
+          : data.publishDate instanceof Date
+            ? data.publishDate.toISOString().slice(0, 10)
+            : undefined,
+        excerpt: data.excerpt as string | undefined,
+        customCoverImage: data.customCoverImage as string | undefined,
+        pdfUrl: data.pdfUrl as string | undefined,
+        body: content.trim(),
+      };
+      if (record.episodeSlug) recordsBySlug.set(record.episodeSlug, record);
+      if (record.episodeGuid) recordsByGuid.set(record.episodeGuid, record);
+    } catch (err) {
+      console.warn(`[episodeMeta] Failed to load ${file}:`, err);
+    }
+  }
+}
+
+loadEpisodes();
+
+function findRecord(episode: Pick<Episode, 'slug' | 'guid'>): EpisodeRecord | null {
+  return (
+    recordsBySlug.get(episode.slug) ??
+    (episode.guid ? recordsByGuid.get(episode.guid) ?? null : null)
+  );
+}
+
 const guestsSource = guestsJson as Guest[] | { guests?: Guest[] };
-const meta: EpisodeMeta[] = Array.isArray(metaSource) ? metaSource : Array.isArray(metaSource?.episodes) ? metaSource.episodes : [];
-const guests: Guest[] = Array.isArray(guestsSource) ? guestsSource : Array.isArray(guestsSource?.guests) ? guestsSource.guests : [];
+const guests: Guest[] = Array.isArray(guestsSource)
+  ? guestsSource
+  : Array.isArray(guestsSource?.guests)
+    ? guestsSource.guests
+    : [];
 
 export function getEpisodeMeta(episode: Pick<Episode, 'slug' | 'guid'>): EpisodeMeta {
-  return (
-    meta.find(
-      (m) =>
-        (m.episodeSlug && m.episodeSlug === episode.slug) ||
-        (m.episodeGuid && m.episodeGuid === episode.guid),
-    ) ?? {}
-  );
+  const rec = findRecord(episode);
+  if (!rec) return {};
+  return {
+    episodeSlug: rec.episodeSlug,
+    episodeGuid: rec.episodeGuid,
+    guests: rec.guests,
+    topics: rec.topics,
+    summary: rec.summary,
+    youtubeUrl: rec.youtubeUrl,
+  };
+}
+
+/** Full record including transcript body + extra fields. Use when more than `EpisodeMeta` is needed. */
+export function getEpisodeRecord(episode: Pick<Episode, 'slug' | 'guid'>): EpisodeRecord | null {
+  return findRecord(episode);
+}
+
+export function getAllEpisodeRecords(): EpisodeRecord[] {
+  return Array.from(recordsBySlug.values());
 }
 
 export function getGuestBySlug(slug: string): Guest | null {
@@ -54,18 +140,17 @@ export function getEpisodesForGuest(guestSlug: string, episodes: Episode[]): Epi
 
 export function getAllTopics(): string[] {
   const set = new Set<string>();
-  for (const m of meta) {
-    for (const t of m.topics ?? []) set.add(t);
+  for (const rec of recordsBySlug.values()) {
+    for (const t of rec.topics ?? []) set.add(t);
   }
   return [...set].sort((a, b) => a.localeCompare(b, 'fi'));
 }
 
 export function resolveGuestNames(slugs: string[]): { slug: string; name: string }[] {
-  return slugs
-    .map((slug) => {
-      const g = getGuestBySlug(slug);
-      return g ? { slug: g.slug, name: g.name } : { slug, name: slug };
-    });
+  return slugs.map((slug) => {
+    const g = getGuestBySlug(slug);
+    return g ? { slug: g.slug, name: g.name } : { slug, name: slug };
+  });
 }
 
 /**

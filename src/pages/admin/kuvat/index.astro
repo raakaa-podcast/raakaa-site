@@ -1,0 +1,347 @@
+---
+import { formatFinnishDate, getEpisodesFromRSS } from '../../../lib/rss';
+
+const episodes = await getEpisodesFromRSS();
+
+type ArtFormat = {
+  id: 'square' | 'youtube' | 'og';
+  label: string;
+  dimensions: string;
+  hint: string;
+  url: (slug: string) => string;
+  filename: (slug: string) => string;
+};
+
+const FORMATS: ArtFormat[] = [
+  {
+    id: 'square',
+    label: 'Square (3000×3000)',
+    dimensions: '3000×3000',
+    hint: 'Apple Podcasts, Spotify (audio), RSS.com episode art',
+    url: (slug) => `/admin/kuvat/${slug}-square.png`,
+    filename: (slug) => `raakaa-${slug}-3000x3000.png`,
+  },
+  {
+    id: 'youtube',
+    label: '16:9 (1920×1080)',
+    dimensions: '1920×1080',
+    hint: 'YouTube thumbnail, Spotify Video, banner',
+    url: (slug) => `/admin/kuvat/${slug}-youtube.png`,
+    filename: (slug) => `raakaa-${slug}-1920x1080.png`,
+  },
+  {
+    id: 'og',
+    label: 'OG (1200×630)',
+    dimensions: '1200×630',
+    hint: 'Open Graph / social sharing previews',
+    url: (slug) => `/og/jaksot/${slug}.png`,
+    filename: (slug) => `raakaa-${slug}-1200x630.png`,
+  },
+];
+---
+
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Jaksokuvat – RAAKAA Admin</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <header class="page-head">
+      <p class="eyebrow">Admin</p>
+      <h1>Jaksokuvat</h1>
+      <p class="lead">
+        Lataa jokaiselle jaksolle valmis kansikuva Apple Podcastsiin (square),
+        YouTubeen (16:9) ja sosiaaliseen mediaan (OG). Kuvat generoidaan
+        automaattisesti uudelleen aina, kun jakso tai sen tiedot päivittyvät
+        Decapissa ja sivusto rakennetaan uudelleen.
+      </p>
+      <p class="links">
+        <a href="/admin/index.html" target="_blank" rel="noopener">↩︎ Takaisin Decap-editoriin</a>
+        <span aria-hidden="true">•</span>
+        <a href="/jaksot" target="_blank" rel="noopener">Selaa jaksoja sivustolla ↗</a>
+      </p>
+    </header>
+
+    <main class="container">
+      {episodes.length === 0 && (
+        <p class="empty">RSS-syötteestä ei löytynyt yhtään jaksoa.</p>
+      )}
+
+      {episodes.map((episode) => (
+        <article class="episode" aria-labelledby={`ep-${episode.slug}`}>
+          <header class="episode-head">
+            <h2 id={`ep-${episode.slug}`}>{episode.title}</h2>
+            <p class="meta">
+              <span>{formatFinnishDate(episode.publishedAt)}</span>
+              <span aria-hidden="true">•</span>
+              <code>{episode.slug}</code>
+            </p>
+          </header>
+
+          <div class="format-grid">
+            {FORMATS.map((fmt) => (
+              <section class="format" aria-labelledby={`${episode.slug}-${fmt.id}`}>
+                <header class="format-head">
+                  <h3 id={`${episode.slug}-${fmt.id}`}>{fmt.label}</h3>
+                  <p class="hint">{fmt.hint}</p>
+                </header>
+
+                <div class={`preview preview-${fmt.id}`}>
+                  <img
+                    src={fmt.url(episode.slug)}
+                    alt={`${fmt.label} esikatselu jaksolle ${episode.title}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+
+                <div class="actions">
+                  <a
+                    class="btn primary"
+                    href={fmt.url(episode.slug)}
+                    download={fmt.filename(episode.slug)}
+                  >
+                    Lataa PNG
+                  </a>
+                  <a
+                    class="btn secondary"
+                    href={fmt.url(episode.slug)}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Avaa
+                  </a>
+                </div>
+              </section>
+            ))}
+          </div>
+        </article>
+      ))}
+    </main>
+
+    <style>
+      :root {
+        --bg: #070707;
+        --panel: #131313;
+        --border: rgba(255, 255, 255, 0.16);
+        --text: #f7f7f7;
+        --muted: #bcbcbc;
+        --accent: #ffd400;
+        --accent-dark: #e3bd00;
+        --radius: 16px;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        background:
+          radial-gradient(1200px 600px at 85% -5%, rgba(255, 212, 0, 0.10), transparent 65%),
+          var(--bg);
+        color: var(--text);
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        min-height: 100%;
+      }
+
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      .page-head {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 1.5rem;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin: 0 0 0.4rem;
+      }
+
+      h1 {
+        margin: 0 0 0.6rem;
+        font-size: clamp(2rem, 4vw, 2.6rem);
+        letter-spacing: -0.01em;
+      }
+
+      .lead {
+        color: var(--muted);
+        max-width: 65ch;
+        line-height: 1.6;
+        margin: 0 0 1rem;
+      }
+
+      .links {
+        display: flex;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+        align-items: center;
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin: 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem 5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+      }
+
+      .empty {
+        color: var(--muted);
+        padding: 2rem;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        text-align: center;
+      }
+
+      .episode {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: clamp(1rem, 2.4vw, 1.6rem);
+      }
+
+      .episode-head h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.25rem;
+        line-height: 1.3;
+      }
+
+      .meta {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.85rem;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .meta code {
+        font-size: 0.78rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+      }
+
+      .format-grid {
+        display: grid;
+        gap: 1.25rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      .format {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.9rem;
+      }
+
+      .format-head h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        letter-spacing: 0.04em;
+      }
+
+      .format-head .hint {
+        margin: 0.15rem 0 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.4;
+      }
+
+      .preview {
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        display: grid;
+        place-items: center;
+        min-height: 100px;
+      }
+
+      .preview img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .preview-square img {
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+      }
+
+      .preview-youtube img {
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+
+      .preview-og img {
+        aspect-ratio: 1200 / 630;
+        object-fit: cover;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: auto;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.55rem 0.9rem;
+        border-radius: 999px;
+        text-decoration: none;
+        cursor: pointer;
+        flex: 1;
+        text-align: center;
+        line-height: 1;
+      }
+
+      .btn:hover { text-decoration: none; }
+
+      .btn.primary {
+        background: var(--accent);
+        color: #161616;
+      }
+      .btn.primary:hover { background: var(--accent-dark); }
+
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .btn.secondary:hover { background: rgba(255, 255, 255, 0.12); }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+        border-radius: 4px;
+      }
+    </style>
+  </body>
+</html>

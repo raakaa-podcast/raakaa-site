@@ -1,9 +1,17 @@
 ---
 title: "RAAKAA #0 - Esittely"
-episodeGuid: "d58362a3-6c64-4dc0-a321-49742e80ac90"
 episodeSlug: raakaa-0-esittely
+episodeGuid: d58362a3-6c64-4dc0-a321-49742e80ac90
 publishDate: 2026-05-09
 excerpt: ""
+summary: "Tämä on RAAKAA Podcastin esittelyjakso. RAAKAA on suomalainen keskustelupodcast, jossa käsitellään yhteiskuntaa, ihmismieltä, ilmiöitä ja ajankohtaisia aiheita suoraan ja ilman turhaa silottelua. Pitkät, syvälle menevät keskustelut tarjoavat tilaa ajatuksille, jotka jäävät uutispätkien ja sosiaalisen median klippien jalkoihin."
+youtubeUrl: ""
+customCoverImage: ""
+pdfUrl: ""
+topics:
+  - esittely
+guests:
+  - markus-suominen
 ---
 
 **Jakso:** RAAKAA #0 – Esittely  
