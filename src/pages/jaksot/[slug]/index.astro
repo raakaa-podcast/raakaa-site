@@ -2,7 +2,6 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import EpisodeButtons from '../../../components/EpisodeButtons.astro';
 import EpisodeCard from '../../../components/EpisodeCard.astro';
-import EpisodeEmbedPanel from '../../../components/EpisodeEmbedPanel.astro';
 import EpisodeShareRow from '../../../components/EpisodeShareRow.astro';
 import YoutubeEmbed from '../../../components/YoutubeEmbed.astro';
 import { formatFinnishDate, getEpisodesFromRSS, type Episode } from '../../../lib/rss';
@@ -109,9 +108,7 @@ const guestExcerpt = (bio: string, max = 180) => {
 
       <div class="description" set:html={episode.description}></div>
 
-      <EpisodeShareRow title={episode.title} url={canonicalUrl} />
-
-      <EpisodeEmbedPanel slug={episode.slug} title={episode.title} />
+      <EpisodeShareRow title={episode.title} url={canonicalUrl} slug={episode.slug} />
 
       <div class="actions">
         <EpisodeButtons
