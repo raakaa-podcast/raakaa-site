@@ -3,60 +3,40 @@ import { ClientRouter } from 'astro:transitions';
 import StickyPlayer from '../components/StickyPlayer.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { getMarkusPersonSchema, getPodcastSeriesSchema } from '../lib/structuredData';
-import { getEpisodesFromRSS } from '../lib/rss';
 
 type Props = {
   title?: string;
   description?: string;
   ogImage?: string;
+  ogImageWidth?: number;
+  ogImageHeight?: number;
+  ogImageAlt?: string;
   ogType?: 'website' | 'article';
   noindex?: boolean;
   structuredData?: Record<string, unknown> | Record<string, unknown>[];
-  /**
-   * Whether to inject the site-wide PodcastSeries + Person(Markus) JSON-LD.
-   * Defaults to true so every page advertises the canonical podcast & host.
-   */
-  includeSiteSchemas?: boolean;
 };
 
 const {
   title = 'RAAKAA Podcast – suomalainen keskustelupodcast | Markus Suominen',
   description = 'RAAKAA Podcast on sitoutumaton, rehellinen ja kiehtova suomalainen keskusteluohjelma. Pitkät keskustelut yhteiskunnasta, ihmismielestä ja ajankohtaisista aiheista. Kuuntele Spotifyssa, Apple Podcastsissa ja YouTubessa.',
   ogImage = '/og-image.jpg',
+  ogImageWidth,
+  ogImageHeight,
+  ogImageAlt,
   ogType = 'website',
   noindex = false,
   structuredData,
-  includeSiteSchemas = true,
 } = Astro.props;
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://www.raakaa.fi';
 const canonical = new URL(Astro.url.pathname, siteUrl).toString().replace(/\/$/, '') || siteUrl;
 const ogImageUrl = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 
-const pageSchemas = Array.isArray(structuredData)
+const structuredDataItems = Array.isArray(structuredData)
   ? structuredData
   : structuredData
     ? [structuredData]
     : [];
-
-const siteSchemas = includeSiteSchemas
-  ? [getPodcastSeriesSchema(), getMarkusPersonSchema()]
-  : [];
-
-const structuredDataItems = [...siteSchemas, ...pageSchemas];
-
-const rssEpisodes = await getEpisodesFromRSS();
-const latestForPlayer = rssEpisodes[0];
-const stickyInitial =
-  latestForPlayer && latestForPlayer.audioUrl
-    ? {
-        title: latestForPlayer.title,
-        audioUrl: latestForPlayer.audioUrl,
-        imageUrl: latestForPlayer.imageUrl,
-        slug: latestForPlayer.slug,
-      }
-    : null;
 ---
 
 <!doctype html>
@@ -74,14 +54,10 @@ const stickyInitial =
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate" type="application/rss+xml" title="RAAKAA Podcast RSS" href="https://media.rss.com/raakaapodcast/feed.xml" />
 
     <link rel="preconnect" href="https://media.rss.com" crossorigin />
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="dns-prefetch" href="https://player.rss.com" />
 
     <meta property="og:site_name" content="RAAKAA Podcast" />
@@ -91,12 +67,17 @@ const stickyInitial =
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageUrl} />
+    {ogImageWidth != null && <meta property="og:image:width" content={String(ogImageWidth)} />}
+    {ogImageHeight != null && <meta property="og:image:height" content={String(ogImageHeight)} />}
+    {ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
+    {ogImageAlt && <meta name="twitter:image:alt" content={ogImageAlt} />}
 
+    <meta name="keywords" content="podcast, suomalainen podcast, keskustelupodcast, RAAKAA, Markus Suominen, suomi, yhteiskunta, ajankohtaista, haastattelu, suomenkielinen podcast" />
     <meta name="author" content="Markus Suominen" />
     <meta name="publisher" content="RAAKAA Podcast" />
 
@@ -118,7 +99,7 @@ const stickyInitial =
 
     <SiteFooter />
 
-    <StickyPlayer initialEpisode={stickyInitial} />
+    <StickyPlayer />
   </body>
 </html>
 
@@ -283,61 +264,15 @@ const stickyInitial =
   }
 
   .player-inner {
-    display: block;
-    padding: 0.75rem 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
     background: var(--surface-strong);
     border: 1px solid rgba(255, 212, 0, 0.2);
   }
 
-  .sticky-player .player-main {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.75rem 1rem;
-  }
-
-  .sticky-player .track-art-wrap {
-    position: relative;
-    width: 56px;
-    height: 56px;
-    flex-shrink: 0;
-    border-radius: 10px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--border);
-  }
-
-  .sticky-player .track-art {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .sticky-player .track-art-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 1.25rem;
-    color: var(--accent);
-    background: linear-gradient(145deg, rgba(255, 212, 0, 0.12), rgba(255, 255, 255, 0.04));
-  }
-
-  .sticky-player .track-art-placeholder span {
-    line-height: 1;
-  }
-
-  .sticky-player .track-block {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .sticky-player .track-label {
+  .track-label {
     margin: 0;
     font-size: 0.74rem;
     text-transform: uppercase;
@@ -345,48 +280,19 @@ const stickyInitial =
     color: var(--muted);
   }
 
-  .sticky-player .track-title-row {
-    margin: 0;
-    min-width: 0;
-  }
-
-  .sticky-player .track-title {
-    margin: 0;
+  .track-title {
+    margin: 0.2rem 0 0;
     font-weight: 700;
-    line-height: 1.25;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    color: var(--text);
   }
 
-  .sticky-player .track-title-link {
-    margin: 0;
-    font-weight: 700;
-    line-height: 1.25;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    color: var(--text);
-    text-decoration: none;
-    transition: color 150ms ease;
-  }
-
-  .sticky-player .track-title-link:hover {
-    color: var(--accent);
-  }
-
-  .sticky-player .scrub-row {
+  .controls {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto auto 1fr auto;
     align-items: center;
-    gap: 0.5rem;
-    width: 100%;
+    gap: 0.65rem;
   }
 
-  .sticky-player .play-btn {
+  .play-btn {
     border: 0;
     width: 2.25rem;
     height: 2.25rem;
