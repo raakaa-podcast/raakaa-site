@@ -163,3 +163,43 @@ collections:
                 fields:
                   - { label: "Otsikko", name: "label", widget: "string" }
                   - { label: "URL", name: "url", widget: "string" }
+      - label: "Media stats (manuaali)"
+        name: "media_stats_manual"
+        file: "src/data/media-stats-manual.json"
+        format: "json"
+        fields:
+          - label: "Kommentti"
+            name: "_comment"
+            widget: "text"
+            required: false
+            hint: "Sisäinen muistiinpano Decapia varten."
+          - label: "Spotify seuraajat"
+            name: "spotifyFollowers"
+            widget: "number"
+            required: false
+            value_type: "int"
+            min: 0
+          - label: "Instagram seuraajat"
+            name: "instagramFollowers"
+            widget: "number"
+            required: false
+            value_type: "int"
+            min: 0
+          - label: "X/Twitter seuraajat"
+            name: "twitterFollowers"
+            widget: "number"
+            required: false
+            value_type: "int"
+            min: 0
+          - label: "Lataukset yhteensä"
+            name: "totalDownloads"
+            widget: "number"
+            required: false
+            value_type: "int"
+            min: 0
+            hint: "Syötä kokonaislatausten määrä RSS.com Analyticsista."
+          - label: "Päivitetty"
+            name: "updatedAt"
+            widget: "string"
+            required: true
+            hint: "Muoto YYYY-MM-DD, esim. 2026-05-11"
