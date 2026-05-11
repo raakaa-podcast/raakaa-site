@@ -14,6 +14,7 @@
     "rss-sync": "tsx scripts/rss-sync.ts",
     "rss-sync:dry": "tsx scripts/rss-sync.ts --dry-run",
     "rss:list": "tsx scripts/rss-list.ts",
+    "media:metrics": "tsx scripts/media-metrics.ts",
     "thumbs": "tsx scripts/generate-thumbnails.ts",
     "episode:info": "tsx scripts/episode-info.ts",
     "favicons": "node scripts/favicons.mjs"

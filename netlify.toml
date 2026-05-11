@@ -4,3 +4,6 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Media kit: lisää Netlify UI:ssa (Build & deploy → Environment) halutessasi:
+  # MEDIAKIT_METRICS_URL, MEDIAKIT_SPOTIFY_* , MEDIAKIT_YOUTUBE_* , MEDIAKIT_APPLE_*
+  # → luvut päivittyvät automaattisesti jokaisen buildin yhteydessä.
