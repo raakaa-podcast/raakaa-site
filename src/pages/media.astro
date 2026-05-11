@@ -1,0 +1,378 @@
+---
+/**
+ * src/pages/media.astro
+ *
+ * /media – Mediapaketti & automaattiset tilastot
+ * Kaikki API-haut tehdään BUILD-VAIHEESSA, ei selaimessa.
+ */
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { fetchAllMediaStats } from "../lib/fetchMediaStats";
+import { getMediaKitSnapshot } from "../lib/mediaKit";
+
+const stats = await fetchAllMediaStats();
+const mediaKit = await getMediaKitSnapshot();
+
+// Apufunktio: muotoilee suuren luvun (12345 → "12 345")
+function fmt(n: number | null | undefined): string {
+  if (n == null) return "–";
+  return n.toLocaleString("fi-FI");
+}
+
+function fmtOneDecimal(n: number | null | undefined): string {
+  if (n == null) return "–";
+  return n.toLocaleString("fi-FI", { maximumFractionDigits: 1 });
+}
+
+// Rakennuspäivä suomeksi
+const builtDate = new Date(stats.builtAt).toLocaleDateString("fi-FI", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+// Episodimäärä: suositaan RSS-feedin lukua, fallback Apple
+const episodeCount =
+  stats.rssEpisodeCount ??
+  stats.apple?.episodeCount ??
+  null;
+---
+
+<BaseLayout
+  title="Mediapaketti | RAAKAA Podcast"
+  description="RAAKAA Podcastin tilastot, levitys ja yhteystiedot mediaa, yhteistyökumppaneita ja vierasehdottajia varten."
+  ogImage="/og-image.jpg"
+>
+  <main id="main" class="media-page">
+
+    <!-- ── Hero ── -->
+    <section class="media-hero">
+      <p class="media-label">Mediapaketti</p>
+      <h1>RAAKAA Podcast</h1>
+      <p class="media-tagline">
+        Rehellinen, pitkämuotoinen suomalainen keskustelupodcast.<br />
+        Vieraana saat aidon, kiireettömän keskustelun, jossa ajatuksillesi annetaan aikaa ja tilaa.
+      </p>
+      <p class="media-built">
+        Luvut haettu: <strong>{builtDate}</strong>
+      </p>
+    </section>
+
+    <!-- ── Tilastot ── -->
+    <section class="media-section">
+      <h2>Tilastot</h2>
+
+      <div class="stats-grid">
+        <!-- Julkaisudata -->
+        <div class="stat-card">
+          <p class="stat-platform">PODCAST</p>
+          <p class="stat-label">Jaksoja julkaistu</p>
+          <p class="stat-value">{fmt(mediaKit.totalEpisodes)}</p>
+          <p class="stat-label">Kesto yhteensä</p>
+          <p class="stat-value stat-value--sm">{fmt(mediaKit.totalRuntimeMinutes)} min</p>
+          <p class="stat-label">Keskimääräinen jakso</p>
+          <p class="stat-value stat-value--sm">{fmtOneDecimal(mediaKit.avgEpisodeMinutes)} min</p>
+        </div>
+
+        <div class="stat-card">
+          <p class="stat-platform">Julkaisut</p>
+          <p class="stat-label">Julkaisuja 30 päivässä</p>
+          <p class="stat-value">{fmt(mediaKit.releasesLast30Days)}</p>
+          <p class="stat-label">Uniikkeja vieraita</p>
+          <p class="stat-value stat-value--sm">{fmt(mediaKit.uniqueGuests)}</p>
+          <p class="stat-label">Aihekategorioita</p>
+          <p class="stat-value stat-value--sm">{fmt(mediaKit.uniqueTopics)}</p>
+        </div>
+
+        <!-- YouTube -->
+        <div class="stat-card">
+          <p class="stat-platform">YouTube</p>
+          <p class="stat-label">Tilaajat</p>
+          <p class="stat-value">{fmt(stats.youtube?.subscribers)}</p>
+          {stats.youtube && (
+            <>
+              <p class="stat-label">Katselukerrat yht.</p>
+              <p class="stat-value stat-value--sm">{fmt(stats.youtube.totalViews)}</p>
+              <p class="stat-label">Videot</p>
+              <p class="stat-value stat-value--sm">{fmt(stats.youtube.videoCount)}</p>
+            </>
+          )}
+          {!stats.youtube && <p class="stat-na">Haetaan kun YouTube API -avain on asetettu</p>}
+        </div>
+
+        <!-- Apple Podcasts -->
+        <div class="stat-card">
+          <p class="stat-platform">Apple Podcasts</p>
+          <p class="stat-label">Arvosana</p>
+          <p class="stat-value">
+            {stats.apple?.rating != null
+              ? `${stats.apple.rating.toFixed(1)} / 5`
+              : "–"}
+          </p>
+          <p class="stat-label">Arvosteluja</p>
+          <p class="stat-value stat-value--sm">{fmt(stats.apple?.ratingCount)}</p>
+        </div>
+
+        <!-- Spotify (manuaalinen) -->
+        <div class="stat-card">
+          <p class="stat-platform">Spotify</p>
+          <p class="stat-label">Seuraajat</p>
+          <p class="stat-value">{fmt(stats.manual.spotifyFollowers)}</p>
+          <p class="stat-na">Päivitetty käsin {stats.manual.updatedAt}</p>
+        </div>
+
+        <!-- Instagram (manuaalinen) -->
+        <div class="stat-card">
+          <p class="stat-platform">Instagram</p>
+          <p class="stat-label">Seuraajat</p>
+          <p class="stat-value">{fmt(stats.manual.instagramFollowers)}</p>
+          <p class="stat-na">Päivitetty käsin {stats.manual.updatedAt}</p>
+        </div>
+
+        <!-- Ladattu yhteensä (manuaalinen) -->
+        <div class="stat-card">
+          <p class="stat-platform">Lataukset yht.</p>
+          <p class="stat-label">Kaikki alustat</p>
+          <p class="stat-value">{fmt(stats.manual.totalDownloads)}</p>
+          <p class="stat-na">Lähde: RSS.com Analytics</p>
+        </div>
+
+        <!-- Jaksoja -->
+        <div class="stat-card">
+          <p class="stat-platform">Jaksoja</p>
+          <p class="stat-label">Julkaistu</p>
+          <p class="stat-value">{fmt(episodeCount)}</p>
+          <p class="stat-na">
+            Lähde: RSS-feed
+            {mediaKit.latestEpisodeDate && (
+              <>
+                <br />
+                Viimeisin julkaisu: {new Date(mediaKit.latestEpisodeDate).toLocaleDateString("fi-FI")}
+              </>
+            )}
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Formaatti ── -->
+    <section class="media-section">
+      <h2>Formaatti</h2>
+      <div class="info-grid">
+        <div><span class="info-label">Kieli</span><span class="info-value">Suomi</span></div>
+        <div><span class="info-label">Formaatti</span><span class="info-value">Pitkät haastattelut ja keskustelut</span></div>
+        <div><span class="info-label">Kesto per jakso</span><span class="info-value">60–120 min</span></div>
+        <div><span class="info-label">Julkaisutahti</span><span class="info-value">Joka torstai</span></div>
+        <div><span class="info-label">Alustat</span><span class="info-value">22 eri palvelua (Spotify, Apple, YouTube…)</span></div>
+        <div><span class="info-label">Editointi</span><span class="info-value">Minimaalinen – ei käsikirjoitusta</span></div>
+        <div><span class="info-label">Litteroinnit</span><span class="info-value">Kyllä – jokaisella jaksosivulla</span></div>
+        <div><span class="info-label">Juontaja</span><span class="info-value">Markus Suominen</span></div>
+      </div>
+    </section>
+
+    <!-- ── Alustalinkit ── -->
+    <section class="media-section">
+      <h2>Kuuntele</h2>
+      <ul class="platform-list">
+        <li><a href="https://open.spotify.com/show/5nPxykti9rWnsb4MpAgLkY" target="_blank" rel="noopener">Spotify →</a></li>
+        <li><a href="https://podcasts.apple.com/fi/podcast/raakaa/id1896272431" target="_blank" rel="noopener">Apple Podcasts →</a></li>
+        <li><a href="https://www.youtube.com/@RaakaaPodcast" target="_blank" rel="noopener">YouTube →</a></li>
+        <li><a href="https://rss.com/podcasts/raakaapodcast/" target="_blank" rel="noopener">RSS.com (22 alustaa) →</a></li>
+      </ul>
+    </section>
+
+    <!-- ── Yhteystiedot ── -->
+    <section class="media-section">
+      <h2>Yhteystiedot</h2>
+      <p>
+        Vierasehdotukset, yhteistyötiedustelut ja mediapyynnöt:<br />
+        <a href="/#yhteys">Yhteydenottolomake →</a>
+      </p>
+      <p>
+        Sähköposti: <a href="mailto:markus@raakaa.fi">markus@raakaa.fi</a>
+      </p>
+      <p>Markus Suominen vastaa kaikkiin viesteihin henkilökohtaisesti.</p>
+    </section>
+
+    <!-- ── Lataa mediapaketti ── -->
+    <section class="media-section">
+      <h2>Materiaalit</h2>
+      <ul class="asset-list">
+        <li><a href="/images/raakaa-logo.svg" download>Logo (SVG) →</a></li>
+        <li><a href="/og-image.jpg" download>OG-kuva 1200×630 px →</a></li>
+        <li><a href="/images/markus-suominen.jpg" download>Markus Suominen – pressikuva →</a></li>
+      </ul>
+      <p class="media-note">
+        Kaikki materiaalit saa käyttää editoriaalisessa kontekstissa CC BY 4.0 -lisenssillä.
+        Mainitse lähteenä "RAAKAA Podcast / Markus Suominen".
+      </p>
+    </section>
+
+  </main>
+</BaseLayout>
+
+<style>
+  .media-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+  }
+
+  /* Hero */
+  .media-hero {
+    border-bottom: 1px solid #222;
+    padding-bottom: 2.5rem;
+    margin-bottom: 3rem;
+  }
+  .media-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+  .media-hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    margin: 0 0 1rem;
+  }
+  .media-tagline {
+    font-size: 1.05rem;
+    color: #aaa;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+  .media-built {
+    font-size: 0.8rem;
+    color: #555;
+  }
+
+  /* Sections */
+  .media-section {
+    margin-bottom: 3.5rem;
+  }
+  .media-section h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f5c842;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1px;
+    background: #1a1a1a;
+    border: 1px solid #1a1a1a;
+  }
+  .stat-card {
+    background: #0d0d0d;
+    padding: 1.5rem 1.25rem;
+  }
+  .stat-platform {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #555;
+    margin: 0 0 0.75rem;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: #666;
+    margin: 0.75rem 0 0.2rem;
+  }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .stat-value--sm {
+    font-size: 1.3rem;
+  }
+  .stat-na {
+    font-size: 0.7rem;
+    color: #444;
+    margin-top: 0.75rem;
+  }
+
+  /* Info grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #1a1a1a;
+  }
+  .info-grid > div {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .info-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #555;
+  }
+  .info-value {
+    font-size: 0.95rem;
+    color: #ddd;
+  }
+
+  /* Platform list */
+  .platform-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .platform-list a {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid #2a2a2a;
+    color: #ccc;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .platform-list a:hover {
+    border-color: #f5c842;
+    color: #f5c842;
+  }
+
+  /* Assets */
+  .asset-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .asset-list a {
+    color: #f5c842;
+    font-size: 0.95rem;
+  }
+  .media-note {
+    font-size: 0.8rem;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+    .stats-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
