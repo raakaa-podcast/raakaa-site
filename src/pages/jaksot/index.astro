@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import EpisodeCard from '../../components/EpisodeCard.astro';
 import { getEpisodesFromRSS } from '../../lib/rss';
 import { getEpisodeMeta } from '../../lib/episodeMeta';
+import { collectTopicIndex } from '../../lib/topics';
 
 const episodes = await getEpisodesFromRSS();
 
@@ -11,6 +12,7 @@ for (const ep of episodes) {
   for (const t of getEpisodeMeta(ep).topics ?? []) allTopicsSet.add(t);
 }
 const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
+const topicIndex = collectTopicIndex(episodes);
 ---
 
 <BaseLayout
@@ -79,6 +81,24 @@ const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
         <p id="empty-state" class="empty-state muted" hidden>
           Hakua vastaavia jaksoja ei löytynyt. Kokeile toista hakusanaa tai poista suodatin.
         </p>
+
+        {topicIndex.length > 0 && (
+          <section class="topic-hub glass" aria-labelledby="topic-hub-title">
+            <h2 id="topic-hub-title" class="topic-hub-title">
+              Aihesivut
+            </h2>
+            <p class="topic-hub-lede muted">
+              Jokainen aihe on myös oma sivunsa — helppo jakaa ja löytyy hakukoneista.
+            </p>
+            <ul class="topic-hub-list">
+              {topicIndex.map(({ slug, label }) => (
+                <li>
+                  <a href={`/jaksot/tag/${slug}`}>#{label}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </>
     ) : (
       <p class="muted">Jaksoja ei voitu hakea tällä hetkellä. Tarkista feed-osoite.</p>
@@ -251,5 +271,51 @@ const allTopics = [...allTopicsSet].sort((a, b) => a.localeCompare(b, 'fi'));
     border-radius: var(--radius);
     border: 1px dashed var(--border);
     text-align: center;
+  }
+
+  .topic-hub {
+    margin-top: 2.5rem;
+    padding: 1.1rem 1.2rem;
+  }
+
+  .topic-hub-title {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .topic-hub-lede {
+    margin: 0 0 0.85rem;
+    font-size: 0.9rem;
+    max-width: 36rem;
+    line-height: 1.5;
+  }
+
+  .topic-hub-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .topic-hub-list a {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+  }
+
+  .topic-hub-list a:hover {
+    color: var(--accent);
+    border-color: rgba(255, 212, 0, 0.4);
+    background: rgba(255, 212, 0, 0.08);
   }
 </style>

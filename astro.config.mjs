@@ -7,7 +7,11 @@ const SITE_URL = 'https://www.raakaa.fi';
 export default defineConfig({
   output: 'static',
   site: SITE_URL,
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      filter: (page) => !page.endsWith('/media'),
+    }),
+  ],
   trailingSlash: 'never',
   build: {
     inlineStylesheets: 'auto',

@@ -64,6 +64,17 @@ const snippetFieldId = slug ? `embed-code-${slug}` : '';
     </a>
     <button
       type="button"
+      class="share-btn share-instagram"
+      data-share-instagram
+      data-share-episode-title={title}
+      data-share-episode-url={url}
+      title="Jaa Instagramissa"
+      aria-label="Jaa Instagramissa (kopioi teksti tai jakovalikko)"
+    >
+      <SocialIcons name="instagram" size={iconSize} />
+    </button>
+    <button
+      type="button"
       class="share-btn share-copy"
       data-share-copy
       data-share-url={url}
@@ -206,6 +217,78 @@ const snippetFieldId = slug ? `embed-code-${slug}` : '';
           });
       } else {
         fallbackCopy(url);
+      }
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    var root = document.getElementById('episode-share');
+    if (!root) return;
+    var igBtn = root.querySelector('[data-share-instagram]');
+    var toast = root.querySelector('[data-share-toast]');
+    if (!igBtn || !(igBtn instanceof HTMLButtonElement) || !toast) return;
+
+    var title = igBtn.getAttribute('data-share-episode-title') || '';
+    var pageUrl = igBtn.getAttribute('data-share-episode-url') || '';
+    var toastTimer = 0;
+
+    function caption() {
+      return [title, pageUrl, '', '#RAAKAA', '#podcast'].join('\n');
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.hidden = false;
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(function () {
+        toast.textContent = '';
+        toast.hidden = true;
+      }, 3200);
+    }
+
+    function copyCaption(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).then(function () {
+          showToast('Kopioitu! Liitä teksti Instagramiin.');
+        });
+      }
+      return new Promise(function (resolve, reject) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showToast('Kopioitu! Liitä teksti Instagramiin.');
+          resolve(undefined);
+        } catch (e) {
+          document.body.removeChild(ta);
+          reject(e);
+        }
+      });
+    }
+
+    igBtn.addEventListener('click', function () {
+      var text = caption();
+
+      if (navigator.share) {
+        navigator
+          .share({ title: title, text: text })
+          .then(function () {
+            showToast('Valmis!');
+          })
+          .catch(function (err) {
+            if (err && err.name === 'AbortError') return;
+            copyCaption(text).catch(function () {});
+          });
+      } else {
+        copyCaption(text).catch(function () {});
       }
     });
   })();

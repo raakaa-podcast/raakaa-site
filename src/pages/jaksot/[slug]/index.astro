@@ -15,6 +15,7 @@ import {
   resolveGuestNames,
 } from '../../../lib/episodeMeta';
 import { getPodcastEpisodeSchema } from '../../../lib/structuredData';
+import { topicToTagSlug } from '../../../lib/topics';
 
 export async function getStaticPaths() {
   const episodes = await getEpisodesFromRSS();
@@ -45,6 +46,18 @@ const guestProfiles = (meta.guests ?? [])
   .filter((g): g is NonNullable<ReturnType<typeof getGuestBySlug>> => g !== null);
 
 const relatedEpisodes = getRelatedEpisodes(episode, allEpisodes, 3);
+
+function episodeSortKey(ep: Episode) {
+  const t = new Date(ep.publishedAt).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+const chronological = [...allEpisodes].sort((a, b) => episodeSortKey(a) - episodeSortKey(b));
+const episodeIndex = chronological.findIndex((e) => e.slug === episode.slug);
+const prevEpisode = episodeIndex > 0 ? chronological[episodeIndex - 1]! : null;
+const nextEpisode =
+  episodeIndex >= 0 && episodeIndex < chronological.length - 1
+    ? chronological[episodeIndex + 1]!
+    : null;
 
 const canonicalUrl = new URL(`/jaksot/${episode.slug}`, Astro.site).href;
 
@@ -88,7 +101,13 @@ const guestExcerpt = (bio: string, max = 180) => {
 
       {topics.length > 0 && (
         <ul class="topics" aria-label="Aiheet">
-          {topics.map((t) => <li class="topic">#{t}</li>)}
+          {topics.map((t) => (
+            <li class="topic">
+              <a class="topic-link" href={`/jaksot/tag/${topicToTagSlug(t)}`}>
+                #{t}
+              </a>
+            </li>
+          ))}
         </ul>
       )}
 
@@ -115,11 +134,29 @@ const guestExcerpt = (bio: string, max = 180) => {
           slug={episode.slug}
           title={episode.title}
           audioUrl={episode.audioUrl}
+          imageUrl={episode.imageUrl}
           size="default"
           showOpenLink={false}
           youtubeUrl={meta.youtubeUrl}
         />
       </div>
+
+      {(prevEpisode || nextEpisode) && (
+        <nav class="episode-pager glass" aria-label="Jaksojen selaus">
+          {prevEpisode && (
+            <a class="pager-link pager-prev" href={`/jaksot/${prevEpisode.slug}`}>
+              <span class="pager-label">← Edellinen jakso</span>
+              <span class="pager-title">{prevEpisode.title}</span>
+            </a>
+          )}
+          {nextEpisode && (
+            <a class="pager-link pager-next" href={`/jaksot/${nextEpisode.slug}`}>
+              <span class="pager-label">Seuraava jakso →</span>
+              <span class="pager-title">{nextEpisode.title}</span>
+            </a>
+          )}
+        </nav>
+      )}
 
       <YoutubeEmbed youtubeUrl={meta.youtubeUrl} />
     </article>
@@ -287,9 +324,81 @@ const guestExcerpt = (bio: string, max = 180) => {
     color: var(--muted);
     border: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.04);
-    padding: 0.22rem 0.6rem;
+    padding: 0;
     border-radius: 999px;
     letter-spacing: 0.04em;
+  }
+
+  .topic-link {
+    display: inline-block;
+    padding: 0.22rem 0.6rem;
+    color: inherit;
+    text-decoration: none;
+    border-radius: inherit;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+  }
+
+  .topic-link:hover {
+    color: var(--accent);
+    border-color: rgba(255, 212, 0, 0.35);
+    background: rgba(255, 212, 0, 0.08);
+  }
+
+  .episode-pager {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+    margin: 1.25rem 0 0;
+    padding: 1rem 1.1rem;
+  }
+
+  @media (min-width: 640px) {
+    .episode-pager:has(.pager-prev):has(.pager-next) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+  }
+
+  .pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.35rem 0;
+    text-decoration: none;
+    color: var(--text);
+    min-width: 0;
+    transition: color 150ms ease;
+  }
+
+  .pager-link:hover {
+    color: var(--accent);
+  }
+
+  .pager-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .pager-link:hover .pager-label {
+    color: var(--accent);
+  }
+
+  .pager-title {
+    font-weight: 600;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (min-width: 640px) {
+    .pager-next {
+      text-align: right;
+    }
   }
 
   .cover {

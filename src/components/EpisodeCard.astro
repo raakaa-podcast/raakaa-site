@@ -2,6 +2,7 @@
 import EpisodeButtons from './EpisodeButtons.astro';
 import { formatFinnishDate, type Episode } from '../lib/rss';
 import { formatDuration, getEpisodeMeta, resolveGuestNames } from '../lib/episodeMeta';
+import { topicToTagSlug } from '../lib/topics';
 
 type Props = {
   episode: Episode;
@@ -69,7 +70,16 @@ const searchString = [
 
   {topics.length > 0 && (
     <ul class="topics" aria-label="Aiheet">
-      {topics.map((t) => <li class="topic">#{t}</li>)}
+      {topics.map((t) => {
+        const tagHref = `/jaksot/tag/${topicToTagSlug(t)}`;
+        return (
+          <li class="topic">
+            <a class="topic-link" href={tagHref}>
+              #{t}
+            </a>
+          </li>
+        );
+      })}
     </ul>
   )}
 
@@ -77,6 +87,7 @@ const searchString = [
     slug={episode.slug}
     title={episode.title}
     audioUrl={episode.audioUrl}
+    imageUrl={episode.imageUrl}
   />
 </article>
 
@@ -197,8 +208,23 @@ const searchString = [
     color: var(--muted);
     border: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.04);
-    padding: 0.2rem 0.55rem;
+    padding: 0;
     border-radius: 999px;
     letter-spacing: 0.04em;
+  }
+
+  .topic-link {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    color: inherit;
+    text-decoration: none;
+    border-radius: inherit;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+  }
+
+  .topic-link:hover {
+    color: var(--accent);
+    border-color: rgba(255, 212, 0, 0.35);
+    background: rgba(255, 212, 0, 0.08);
   }
 </style>

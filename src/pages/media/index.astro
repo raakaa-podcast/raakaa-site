@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const title = 'Media kit | RAAKAA Podcast';
+const description =
+  'RAAKAA Podcastin media kit: formaatti, arvot ja tavoittavuus (päivitetään). Sivu on tarkoitettu vieras- ja yhteistyökontakteille — ei indeksoida hakukoneisiin vielä.';
+---
+
+<BaseLayout title={title} description={description} noindex>
+  <div class="page max">
+    <article class="media-kit glass">
+      <header class="head">
+        <p class="eyebrow">Sisäinen / piilotettu</p>
+        <h1>Media kit</h1>
+        <p class="lede">
+          Yhden sivun kooste ohjelmasta, kun haet laadukkaita vieraita (asiantuntijat, virkamiehet, akateemikot,
+          julkisuuden henkilöt). Julkinen versio ja tilastot päivitetään, kun kuuntelijoita on enemmän.
+        </p>
+      </header>
+
+      <section aria-labelledby="sec-format">
+        <h2 id="sec-format">Formaatti</h2>
+        <ul class="bullets">
+          <li>Suomenkielinen keskusteluohjelma — pitkiä, rauhallisia haastatteluja; editointi minimoiss.</li>
+          <li>Julkaisu: podcast-tasot (RSS), video valituista jaksoista tarvittaessa.</li>
+          <li>Isäntänä <strong>Markus Suominen</strong>.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="sec-values">
+        <h2 id="sec-values">Arvot ja lupaus</h2>
+        <ul class="bullets">
+          <li>Sitoutumaton, rehellinen äänensävy — tilaa ajatuksille ilman turhaa silottelua.</li>
+          <li>Vieras kunnioituksella; tarkoitus on ymmärtää ja tuoda esiin syvää asiantuntemusta.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="sec-reach">
+        <h2 id="sec-reach">Tavoittavuus (tulossa)</h2>
+        <p class="muted">
+          Kuuntelijamäärät, alustat ja kasvukäyrät kirjataan tähän, kun data on riittävän edustavaa. Silloin tämä
+          sivu voidaan linkittää navigaatioon ja avata hakukoneille.
+        </p>
+      </section>
+
+      <p class="contact muted">
+        Yhteydenotot ja vierasehdotukset: <a href="/">raakaa.fi</a> — yhteydenottolomake.
+      </p>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 7rem;
+    padding-bottom: 2rem;
+  }
+
+  .media-kit {
+    padding: clamp(1.2rem, 3vw, 2.2rem);
+    max-width: 44rem;
+  }
+
+  .head {
+    margin-bottom: 1.75rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.35rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  h1 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.85rem, 4vw, 2.75rem);
+  }
+
+  .lede {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 1rem;
+  }
+
+  section {
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    margin: 0 0 0.6rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .bullets {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .bullets li {
+    margin-bottom: 0.45rem;
+  }
+
+  .contact {
+    margin: 2rem 0 0;
+    font-size: 0.95rem;
+  }
+
+  .contact a {
+    color: var(--accent);
+  }
+</style>

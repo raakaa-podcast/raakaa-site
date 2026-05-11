@@ -5,6 +5,8 @@ type Props = {
   slug: string;
   title: string;
   audioUrl: string;
+  /** Cover image for the sticky mini-player. */
+  imageUrl?: string;
   size?: 'small' | 'default';
   /** When false, hide “Avaa” (e.g. on the episode detail page). */
   showOpenLink?: boolean;
@@ -12,7 +14,7 @@ type Props = {
   youtubeUrl?: string;
 };
 
-const { slug, title, audioUrl, size = 'small', showOpenLink = true, youtubeUrl } = Astro.props;
+const { slug, title, audioUrl, imageUrl, size = 'small', showOpenLink = true, youtubeUrl } = Astro.props;
 const cls = size === 'small' ? 'btn small' : 'btn';
 
 function getYoutubeWatchUrl(url: string | undefined): string | null {
@@ -64,6 +66,8 @@ const youtubeWatch = getYoutubeWatchUrl(youtubeUrl);
     data-play-episode
     data-episode-title={title}
     data-episode-audio={audioUrl}
+    data-episode-slug={slug}
+    data-episode-art={imageUrl ?? ''}
     aria-label={`Toista jakso: ${title}`}
   >
     <span aria-hidden="true">Toista</span>
