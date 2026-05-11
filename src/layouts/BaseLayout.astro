@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import StickyPlayer from '../components/StickyPlayer.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import { getLatestEpisodeForStickyPlayer } from '../lib/stickyInitialEpisode';
 
 type Props = {
   title?: string;
@@ -37,6 +38,16 @@ const structuredDataItems = Array.isArray(structuredData)
   : structuredData
     ? [structuredData]
     : [];
+
+const latestForSticky = await getLatestEpisodeForStickyPlayer();
+const stickyInitialEpisode = latestForSticky
+  ? {
+      title: latestForSticky.title,
+      audioUrl: latestForSticky.audioUrl,
+      ...(latestForSticky.imageUrl ? { imageUrl: latestForSticky.imageUrl } : {}),
+      slug: latestForSticky.slug,
+    }
+  : null;
 ---
 
 <!doctype html>
@@ -99,7 +110,7 @@ const structuredDataItems = Array.isArray(structuredData)
 
     <SiteFooter />
 
-    <StickyPlayer />
+    <StickyPlayer initialEpisode={stickyInitialEpisode} />
   </body>
 </html>
 
