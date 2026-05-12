@@ -9,7 +9,8 @@ const latestEpisodes = episodes.slice(0, 3);
 
 const siteBaseUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://www.raakaa.fi';
 const heroImagePath = '/images/hero.jpg';
-const heroImageWebp = '/images/hero.webp';
+/** Responsiivinen WebP (ajaa `npm run optimize:hero` kun vaihdat hero-kuvaa). */
+const heroWebpSrcset = '/images/hero-960.webp 960w, /images/hero-1920.webp 1920w, /images/hero.webp 2048w';
 const heroImageAbsolute = `${siteBaseUrl}${heroImagePath}`;
 const heroIntrinsicWidth = 2048;
 const heroIntrinsicHeight = 1365;
@@ -100,10 +101,18 @@ const orgSchema = {
   ogImageAlt={heroImageAlt}
   structuredData={[podcastSchema, faqSchema, orgSchema]}
 >
+  <link
+    slot="head"
+    rel="preload"
+    as="image"
+    imagesrcset={heroWebpSrcset}
+    imagesizes="100vw"
+    fetchpriority="high"
+  />
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-bg" aria-hidden="true">
       <picture>
-        <source srcset={heroImageWebp} type="image/webp" />
+        <source srcset={heroWebpSrcset} sizes="100vw" type="image/webp" />
         <img
           src={heroImagePath}
           alt=""
@@ -112,6 +121,7 @@ const orgSchema = {
           decoding="async"
           width={heroIntrinsicWidth}
           height={heroIntrinsicHeight}
+          sizes="100vw"
         />
       </picture>
       <div class="hero-gradient"></div>
