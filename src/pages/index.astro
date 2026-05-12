@@ -118,7 +118,7 @@ const orgSchema = {
           alt=""
           loading="eager"
           fetchpriority="high"
-          decoding="async"
+          decoding="sync"
           width={heroIntrinsicWidth}
           height={heroIntrinsicHeight}
           sizes="100vw"
@@ -377,6 +377,13 @@ const orgSchema = {
 </BaseLayout>
 
 <style>
+  @supports (content-visibility: auto) {
+    main > section:not(.hero) {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 560px;
+    }
+  }
+
   .hero {
     position: relative;
     min-height: 100svh;
